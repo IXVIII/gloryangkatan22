@@ -274,10 +274,13 @@
             const processedData = [];
             for (let i = 0; i < data.length; i++) {
                 const student = data[i];
-                if (student.kelompok) {
+                // === PERUBAHAN DI SINI ===
+                // Sekarang, "ketua grup" adalah yang kelompoknya TIDAK SAMA DENGAN '-'
+                if (student.kelompok !== '-') {
                     let groupSize = 1;
                     let j = i + 1;
-                    while (j < data.length && !data[j].kelompok) {
+                    // Dan "anggota grup" adalah yang kelompoknya SAMA DENGAN '-'
+                    while (j < data.length && data[j].kelompok === '-') {
                         groupSize++;
                         j++;
                     }
@@ -287,10 +290,12 @@
                     }
                     i += groupSize - 1;
                 } else {
+                    // Jika baris pertama dimulai dengan '-', anggap sebagai grup tunggal
                     processedData.push({ ...student, rowspan: 1, isMerged: false });
                 }
             }
 
+            // Bagian rendering selanjutnya tidak ada perubahan logika
             processedData.forEach((student, index) => {
                 const row = document.createElement('tr');
                 const isLastInGroup = (index === processedData.length - 1) || !processedData[index + 1].isMerged;
