@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Progress Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -121,6 +123,7 @@
                             <option value="group">Filter by Group</option>
                         </select>
                         <select id="group-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hidden"></select>
+                        <button id="download-pdf" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Download PDF</button>
                     </div>
                 </div>
                 <div class="table-container max-h-[60vh] overflow-y-auto">
@@ -453,6 +456,52 @@
         function updateLastUpdated() {
             document.getElementById('last-updated').textContent = new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }).replace(/\./g, ':');
         }
+        document.getElementById('download-pdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+        
+            const filteredData = students.filter(s => {
+                const search = searchInput.value.toLowerCase();
+                const searchMatch = !search || Object.values(s).some(v => String(v).toLowerCase().includes(search));
+                const filter = filterSelect.value;
+                const group = document.getElementById('group-filter').value;
+        
+                const statusMatch = filter === 'all' || filter === 'group' ||
+                    (filter === 'thesis-completed' && s.thesisStatus === 'completed') ||
+                    (filter === 'thesis-pending' && s.thesisStatus === 'pending') ||
+                    (filter === 'demo-completed' && s.demoStatus === 'completed') ||
+                    (filter === 'demo-pending' && s.demoStatus === 'pending');
+                const groupMatch = filter !== 'group' || !group || s.kelompok === group;
+        
+                return searchMatch && statusMatch && groupMatch;
+            });
+        
+            const tableData = filteredData.map(student => [
+                student.nim,
+                student.nama,
+                student.tempatmagang,
+                student.kelompok || "-",
+                student.dosenpembimbing1,
+                student.dosenpembimbing2,
+                student.thesisStatus === 'completed' ? 'Completed' : 'Pending',
+                student.demoStatus === 'completed' ? 'Completed' : 'Pending'
+            ]);
+        
+            doc.text("Data Progress Mahasiswa", 14, 14);
+            doc.autoTable({
+                head: [['NIM', 'Nama', 'Tempat Magang', 'Kelompok', 'Dospem 1', 'Dospem 2', 'Sidang', 'Demo PL']],
+                body: tableData,
+                startY: 20,
+                styles: {
+                    fontSize: 8
+                },
+                headStyles: {
+                    fillColor: [30, 64, 175] // warna biru tua
+                }
+            });
+        
+            doc.save('Student_Progress.pdf');
+        });
 
         // Mulai aplikasi
         window.addEventListener('DOMContentLoaded', fetchData);
