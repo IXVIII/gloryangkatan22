@@ -389,7 +389,7 @@
 
             const thesisStatusValue = document.querySelector('input[name="thesis-status"]:checked').value;
             const demoStatusValue = document.querySelector('input[name="demo-status"]:checked').value;
-            
+
             // --- Logika untuk menemukan semua anggota kelompok (tidak berubah) ---
             const clickedIdx = students.findIndex(s => s.id === currentStudentId);
             if (clickedIdx === -1) return;
@@ -400,13 +400,12 @@
             }
             
             // --- Logika BARU untuk mengirim update ---
-            const updatePromises = []; // Kumpulkan semua proses update
+            const updatePromises = [];
             let memberIdx = leaderIdx;
 
             while(memberIdx < students.length) {
                 const studentToUpdate = students[memberIdx];
                 
-                // Data yang akan dikirim ke Apps Script
                 const payload = {
                     nim: studentToUpdate.nim,
                     sidang: thesisStatusValue === 'completed' ? 'TRUE' : 'FALSE',
@@ -414,32 +413,32 @@
                 };
 
                 // Kirim data menggunakan metode POST
+                // mode: 'no-cors' DIHAPUS agar bisa melihat respons server
                 const updatePromise = fetch(webAppUrl, {
                     method: 'POST',
-                    mode: 'no-cors', // Diperlukan untuk Apps Script
+                    // Hapus baris 'mode: "no-cors",'
                     headers: {
-                        'Content-Type': 'application/json',
+                        "Content-Type": "text/plain;charset=utf-8", // Gunakan text/plain untuk menghindari preflight
                     },
                     body: JSON.stringify(payload),
                 });
 
                 updatePromises.push(updatePromise);
 
-                // Hentikan loop jika sudah mencapai akhir grup
                 if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok !== '-') {
                     break;
                 }
                 memberIdx++;
             }
             
-            // Tunggu semua proses update selesai
+            // Tunggu semua proses update selesai dan muat ulang data
             try {
-                await Promise.all(updatePromises);
-                console.log("All updates sent successfully.");
-                // Muat ulang data dari awal untuk memastikan sinkron
-                fetchData(); 
+                const responses = await Promise.all(updatePromises);
+                console.log("Server responses:", responses);
+                fetchData(); // Muat ulang data dari sheet untuk memastikan sinkron
             } catch (error) {
-                console.error("Failed to send updates:", error);
+                console.error("Gagal mengirim update ke server:", error);
+                alert("Gagal menyimpan perubahan ke server. Silakan cek console untuk detail.");
             }
             
             closeModal();
