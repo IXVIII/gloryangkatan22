@@ -383,58 +383,64 @@
             currentStudentId = null;
         }
 
-        // Simpan perubahan dari modal
-        function saveChanges() {
+        // Simpan perubahan dari modal ke Google Sheet via Apps Script
+        async function saveChanges() {
             if (currentStudentId === null) return;
 
-            // 1. Ambil status dari modal ('completed' atau 'pending')
             const thesisStatusValue = document.querySelector('input[name="thesis-status"]:checked').value;
             const demoStatusValue = document.querySelector('input[name="demo-status"]:checked').value;
-
-            // 2. Konversi status ke format "TRUE" / "FALSE" sesuai kolom di Sheet
-            const newSidangStatus = thesisStatusValue === 'completed' ? 'TRUE' : 'FALSE';
-            const newDemoPlStatus = demoStatusValue === 'completed' ? 'TRUE' : 'FALSE';
-
+            
             // --- Logika untuk menemukan semua anggota kelompok (tidak berubah) ---
             const clickedIdx = students.findIndex(s => s.id === currentStudentId);
             if (clickedIdx === -1) return;
 
             let leaderIdx = clickedIdx;
-            if (!students[leaderIdx].kelompok) {
-                while (leaderIdx > 0 && !students[leaderIdx].kelompok) {
-                    leaderIdx--;
-                }
+            if (students[leaderIdx].kelompok === '-') {
+                while(leaderIdx > 0 && students[leaderIdx].kelompok === '-') leaderIdx--;
             }
             
-            // 3. Update data untuk semua anggota kelompok
+            // --- Logika BARU untuk mengirim update ---
+            const updatePromises = []; // Kumpulkan semua proses update
             let memberIdx = leaderIdx;
-            while (memberIdx < students.length) {
-                // Update properti 'sidang' dan 'demopl' dengan nilai TRUE/FALSE
-                students[memberIdx].sidang = newSidangStatus;
-                students[memberIdx].demopl = newDemoPlStatus;
+
+            while(memberIdx < students.length) {
+                const studentToUpdate = students[memberIdx];
                 
-                // Update juga status 'completed'/'pending' agar UI langsung berubah
-                students[memberIdx].thesisStatus = thesisStatusValue;
-                students[memberIdx].demoStatus = demoStatusValue;
+                // Data yang akan dikirim ke Apps Script
+                const payload = {
+                    nim: studentToUpdate.nim,
+                    sidang: thesisStatusValue === 'completed' ? 'TRUE' : 'FALSE',
+                    demopl: demoStatusValue === 'completed' ? 'TRUE' : 'FALSE'
+                };
+
+                // Kirim data menggunakan metode POST
+                const updatePromise = fetch(webAppUrl, {
+                    method: 'POST',
+                    mode: 'no-cors', // Diperlukan untuk Apps Script
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                updatePromises.push(updatePromise);
 
                 // Hentikan loop jika sudah mencapai akhir grup
-                if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok) {
+                if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok !== '-') {
                     break;
                 }
                 memberIdx++;
             }
-
-            // --- Perbarui UI (tidak berubah) ---
-            updateDashboardStats();
-            filterStudents();
-            updateLastUpdated();
             
-            // Tampilkan pesan sukses
-            const successMessage = document.createElement('div');
-            successMessage.className = 'fixed bottom-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-md z-50';
-            successMessage.innerHTML = `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg><p>Status kelompok berhasil diperbarui!</p></div>`;
-            document.body.appendChild(successMessage);
-            setTimeout(() => { successMessage.remove(); }, 3000);
+            // Tunggu semua proses update selesai
+            try {
+                await Promise.all(updatePromises);
+                console.log("All updates sent successfully.");
+                // Muat ulang data dari awal untuk memastikan sinkron
+                fetchData(); 
+            } catch (error) {
+                console.error("Failed to send updates:", error);
+            }
             
             closeModal();
         }
