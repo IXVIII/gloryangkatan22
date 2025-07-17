@@ -276,7 +276,7 @@
                 const student = data[i];
                 // === PERUBAHAN DI SINI ===
                 // Sekarang, "ketua grup" adalah yang kelompoknya TIDAK SAMA DENGAN '-'
-                if (student.kelompok !== '-') {
+                if (student.kelompok !== '') {
                     let groupSize = 1;
                     let j = i + 1;
                     // Dan "anggota grup" adalah yang kelompoknya SAMA DENGAN '-'
@@ -305,8 +305,8 @@
                 if (!student.isMerged) {
                     sharedHtml = `
                         <td rowspan="${student.rowspan}">${student.tempatmagang}</td>
-                        <td rowspan="${student.rowspan}">${student.dospem1}</td>
-                        <td rowspan="${student.rowspan}">${student.dospem2}</td>
+                        <td rowspan="${student.rowspan}">${student.dosenpembimbing1}</td>
+                        <td rowspan="${student.rowspan}">${student.dosenpembimbing2}</td>
                     `;
                 }
 
