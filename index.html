@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MI ANGKATAN 22</title>
+    <title>Student Progress Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -28,6 +28,7 @@
         th, td {
             padding: 12px 16px;
             text-align: left;
+            vertical-align: top; /* Ensures rowspan content aligns to the top */
         }
         thead th {
             position: sticky;
@@ -41,10 +42,11 @@
         }
         .status-badge {
             display: inline-block;
-            padding: 4px 8px;
+            padding: 4px 12px;
             border-radius: 9999px;
             font-size: 0.75rem;
             font-weight: 500;
+            text-transform: capitalize;
         }
         .status-completed {
             background-color: #dcfce7;
@@ -59,29 +61,22 @@
 <body>
     <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <header class="bg-blue-800 text-white shadow-lg flex justify-between items-center px-10 py-6">
-    
             <div>
                 <h1 class="text-3xl font-bold">MI 22, Bismillah LULUS</h1>
                 <p class="mt-2 text-blue-200">Live monitoring PKTA - Sidang TA / Demo PL</p>
             </div>
-        
             <div class="text-right">
                 <h3 class="text-blue-200 text-sm font-medium">Last Updated</h3>
-                <p class="text-xl font-medium text-white mt-1" id="last-updated">
-                    17 Juli 2025, 08:23
-                </p>
+                <p class="text-xl font-medium text-white mt-1" id="last-updated">-</p>
             </div>
-        
         </header>
 
         <main class="pl-10 pr-10 mx-auto px-4 py-8">
-            <!-- Dashboard Summary -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="dashboard-card bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-600">
                     <h3 class="text-gray-500 text-sm font-medium">Total Students</h3>
                     <p class="text-3xl font-bold text-gray-800 mt-2" id="total-count">0</p>
                 </div>
-                
                 <div class="dashboard-card bg-white rounded-xl shadow-md p-6 border-l-4 border-green-600">
                     <h3 class="text-gray-500 text-sm font-medium">Sidang TA Completed</h3>
                     <div class="flex items-end mt-2">
@@ -89,7 +84,6 @@
                         <p class="text-sm text-gray-500 ml-2 mb-1">of <span id="thesis-total">0</span></p>
                     </div>
                 </div>
-                
                 <div class="dashboard-card bg-white rounded-xl shadow-md p-6 border-l-4 border-indigo-600">
                     <h3 class="text-gray-500 text-sm font-medium">Demo PL Completed</h3>
                     <div class="flex items-end mt-2">
@@ -97,9 +91,8 @@
                         <p class="text-sm text-gray-500 ml-2 mb-1">of <span id="demo-total">0</span></p>
                     </div>
                 </div>
-                
                 <div class="dashboard-card bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-600">
-                    <h3 class="text-gray-500 text-sm font-medium">Completion Rate</h3>
+                    <h3 class="text-gray-500 text-sm font-medium">Overall Progress</h3>
                     <div class="flex items-center mt-2">
                         <p class="text-3xl font-bold text-gray-800" id="completion-rate">0%</p>
                         <div class="ml-4 flex-1">
@@ -111,16 +104,13 @@
                 </div>
             </div>
 
-            <!-- Data Table -->
             <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
                 <div class="p-6 border-b border-gray-200 flex justify-between items-center flex-wrap gap-4">
                     <h2 class="text-xl font-semibold text-gray-800">Student Progress Data</h2>
                     <div class="flex items-center space-x-4">
                         <div class="relative">
-                            <input type="text" id="search-input" placeholder="Search students..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                            <input type="text" id="search-input" placeholder="Search..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         </div>
                         <select id="filter-select" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="all">All Students</option>
@@ -130,1624 +120,329 @@
                             <option value="demo-pending">Demo Pending</option>
                             <option value="group">Filter by Group</option>
                         </select>
-                        <select id="group-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hidden">
-                            <option value="all">All Groups</option>
-                        </select>
+                        <select id="group-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hidden"></select>
                     </div>
                 </div>
-                <div class="table-container max-h-[500px] overflow-y-auto">
+                <div class="table-container max-h-[60vh] overflow-y-auto">
                     <table class="min-w-full">
                         <thead>
                             <tr>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">NIM</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Nama</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Tempat Magang</th>
-                                <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Kelompok</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Dospem 1</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Dospem 2</th>
+                                <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Kelompok</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Sidang</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Demo PL</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="student-table-body">
-                            <!-- Table rows will be populated by JavaScript -->
+                            <tr><td colspan="9" class="text-center py-5">Loading data...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </main>
-
         <footer class="bg-blue-900 text-white py-6">
             <div class="container mx-auto px-4 text-center">
-                <p>© 2023 Student Progress Tracker | Politeknik Astra</p>
+                <p>&copy; 2024 Student Progress Tracker | Politeknik Astra</p>
             </div>
         </footer>
     </div>
 
-    <!-- Edit Modal -->
     <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold text-gray-800">Update Student Status</h3>
-                <button id="close-modal" class="text-gray-500 hover:text-gray-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700">&times;</button>
             </div>
             <div class="mb-6">
                 <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <p class="text-gray-600 hidden">Nama:</p>
-                        <p id="modal-student-name" class="font-medium text-gray-800 hidden"></p>
-                    </div>
-                    <div>
-                        <p class="text-gray-600 hidden">NIM:</p>
-                        <p id="modal-student-nim" class="font-medium text-gray-800 hidden"></p>
-                    </div>
-                    <div>
-                        <p class="text-gray-600">Kelompok:</p>
-                        <p id="modal-student-group" class="font-medium text-gray-800"></p>
-                    </div>
-                    <div>
-                        <p class="text-gray-600">Tempat Magang:</p>
-                        <p id="modal-student-internship" class="font-medium text-gray-800"></p>
-                    </div>
+                    <div><p class="text-gray-600">Nama:</p><p id="modal-student-name" class="font-medium text-gray-800"></p></div>
+                    <div><p class="text-gray-600">NIM:</p><p id="modal-student-nim" class="font-medium text-gray-800"></p></div>
+                    <div><p class="text-gray-600">Kelompok:</p><p id="modal-student-group" class="font-medium text-gray-800"></p></div>
+                    <div><p class="text-gray-600">Tempat Magang:</p><p id="modal-student-internship" class="font-medium text-gray-800"></p></div>
                 </div>
-                
                 <div class="space-y-4 border-t border-gray-200 pt-4">
                     <div>
                         <label class="block text-gray-700 mb-2 font-medium">Sidang TA Status</label>
                         <div class="flex space-x-4">
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="thesis-status" value="completed" class="form-radio h-5 w-5 text-blue-600">
-                                <span class="ml-2 text-gray-700">Completed</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="thesis-status" value="pending" class="form-radio h-5 w-5 text-blue-600">
-                                <span class="ml-2 text-gray-700">Pending</span>
-                            </label>
+                            <label class="inline-flex items-center"><input type="radio" name="thesis-status" value="completed" class="form-radio h-5 w-5 text-blue-600"><span class="ml-2">Completed</span></label>
+                            <label class="inline-flex items-center"><input type="radio" name="thesis-status" value="pending" class="form-radio h-5 w-5 text-blue-600"><span class="ml-2">Pending</span></label>
                         </div>
                     </div>
-                    
                     <div>
                         <label class="block text-gray-700 mb-2 font-medium">Demo PL Status</label>
                         <div class="flex space-x-4">
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="demo-status" value="completed" class="form-radio h-5 w-5 text-blue-600">
-                                <span class="ml-2 text-gray-700">Completed</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="demo-status" value="pending" class="form-radio h-5 w-5 text-blue-600">
-                                <span class="ml-2 text-gray-700">Pending</span>
-                            </label>
+                            <label class="inline-flex items-center"><input type="radio" name="demo-status" value="completed" class="form-radio h-5 w-5 text-blue-600"><span class="ml-2">Completed</span></label>
+                            <label class="inline-flex items-center"><input type="radio" name="demo-status" value="pending" class="form-radio h-5 w-5 text-blue-600"><span class="ml-2">Pending</span></label>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="flex justify-end space-x-3">
-                <button id="cancel-edit" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
-                    Cancel
-                </button>
-                <button id="save-edit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    Save Changes
-                </button>
+                <button id="cancel-edit" class="px-4 py-2 border rounded-lg hover:bg-gray-100">Cancel</button>
+                <button id="save-edit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Changes</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Sample data (since we can't access the actual spreadsheet)
-        const sampleData = 
-[
-  {
-    "id": 1,
-    "nim": "0320220025",
-    "name": "VIANSYAH SHINE EKALAYA",
-    "internship": "PAKO GROUP",
-    "group": "1",
-    "advisor1": "Radix Rascalia, S.T., M.T",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 2,
-    "nim": "0320220030",
-    "name": "ANISATUL FATIKHA",
-    "internship": "POLITEKNIK ASTRA",
-    "group": "2",
-    "advisor1": "Kristina Hutajulu, S.Kom., M.Kom",
-    "advisor2": "Arie Kusumawati, S.Kom., M.T.I",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 3,
-    "nim": "0320220084",
-    "name": "DEVINA PERWITA SARI",
-    "internship": "POLITEKNIK ASTRA",
-    "group": "",
-    "advisor1": "Kristina Hutajulu, S.Kom., M.Kom",
-    "advisor2": "Arie Kusumawati, S.Kom., M.T.I",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 4,
-    "nim": "0320220110",
-    "name": "FARID BAGAS SAPUTRA",
-    "internship": "POLITEKNIK ASTRA",
-    "group": "3",
-    "advisor1": "Arie Kusumawati, S.Kom., M.T.I",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 5,
-    "nim": "0320220043",
-    "name": "MUHAMMAD ADZIDNI FIKRAN BAMADHAN",
-    "internship": "PT AI - ISUZU SALES OPERATION",
-    "group": "4",
-    "advisor1": "Deyana Kusuma Wardani, S.Tr.Kom., M.Tr.Kom",
-    "advisor2": "Luthfi Atikah, S.Kom., M.Kom.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 6,
-    "nim": "0320220059",
-    "name": "AGNASYA NABILA PUTRI",
-    "internship": "PT AISIN INDONESIA",
-    "group": "5",
-    "advisor1": "Radix Rascalia, S.T., M.T",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 7,
-    "nim": "0320220035",
-    "name": "FAIZ ZIHNI AMMAR",
-    "internship": "PT AISIN INDONESIA",
-    "group": "6",
-    "advisor1": "Dr. Rida Indah Fariani, S.Si., M.T.I.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 8,
-    "nim": "0320220071",
-    "name": "M JIDAN ROMI RAHMAWAN",
-    "internship": "PT AISIN INDONESIA",
-    "group": "7",
-    "advisor1": "Dr. Rida Indah Fariani, S.Si., M.T.I.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 9,
-    "nim": "0320220017",
-    "name": "MUHAMMAD KRISNA PASHA",
-    "internship": "PT AISIN INDONESIA",
-    "group": "8",
-    "advisor1": "Timotius Victory, S.Kom, M.Kom",
-    "advisor2": "Dr. Rida Indah Fariani, S.Si., M.T.I.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 10,
-    "nim": "0320220019",
-    "name": "NABILA HUSNUL ABIDAH",
-    "internship": "PT AISIN INDONESIA",
-    "group": "9",
-    "advisor1": "Radix Rascalia, S.T., M.T",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 11,
-    "nim": "0320220045",
-    "name": "MUHAMMAD AMMAR ZAKY",
-    "internship": "PT AISIN INDONESIA AUTOMOTIVE",
-    "group": "10",
-    "advisor1": "Muhammad Ridha, S.T., M.Kom",
-    "advisor2": "Dr. Rida Indah Fariani, S.Si., M.T.I.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 12,
-    "nim": "0320220087",
-    "name": "FAUZAN FAHRUL ROZY",
-    "internship": "PT AISIN TAKAOKA INDONESIA",
-    "group": "11",
-    "advisor1": "Sasmito Budi Utomo, S.Si., M.T.I.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 13,
-    "nim": "0320220107",
-    "name": "ZIBAN ROBBANI",
-    "internship": "PT AISIN TAKAOKA INDONESIA",
-    "group": "75",
-    "advisor1": "Sasmito Budi Utomo, S.Si., M.T.I.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 14,
-    "nim": "0320220004",
-    "name": "DHIKA ALAMSYAH PUTRA",
-    "internship": "PT AKASHI WAHANA INDONESIA",
-    "group": "12",
-    "advisor1": "Luthfi Atikah, S.Kom., M.Kom.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 15,
-    "nim": "0320220012",
-    "name": "LATHIFAH ZAHRATUL JANAH",
-    "internship": "PT AKASHI WAHANA INDONESIA",
-    "group": "",
-    "advisor1": "Luthfi Atikah, S.Kom., M.Kom.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 16,
-    "nim": "0320220085",
-    "name": "DINDA ALFIYANI HIKMAH",
-    "internship": "PT AKEBONO BRAKE ASTRA INDONESIA",
-    "group": "13",
-    "advisor1": "Rosa Eliviani, S.Kom., M.T.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 17,
-    "nim": "0320220078",
-    "name": "RHEINALDI RAUDATUL ANBIYA",
-    "internship": "PT AKEBONO BRAKE ASTRA INDONESIA",
-    "group": "",
-    "advisor1": "Rosa Eliviani, S.Kom., M.T.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 18,
-    "nim": "0320220048",
-    "name": "MUH. FARHAN ADIYASA PRATAMA",
-    "internship": "PT AKEBONO BRAKE ASTRA INDONESIA",
-    "group": "14",
-    "advisor1": "Eko Abdul Goffar, S.Kom",
-    "advisor2": "Luthfi Atikah, S.Kom., M.Kom.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 19,
-    "nim": "0320220103",
-    "name": "SALSA NUR SYAFITRI",
-    "internship": "PT AKEBONO BRAKE ASTRA INDONESIA",
-    "group": "",
-    "advisor1": "Eko Abdul Goffar, S.Kom",
-    "advisor2": "Luthfi Atikah, S.Kom., M.Kom.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 20,
-    "nim": "0320220088",
-    "name": "FIKRI ANGGANA PRATAMA",
-    "internship": "PT AOP - NUSAMETAL DIVISION",
-    "group": "15",
-    "advisor1": "Rr. Kartika K. W., S.T., M.T.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 21,
-    "nim": "0320220089",
-    "name": "HALIZA WIDYA SABRINA",
-    "internship": "PT AOP - NUSAMETAL DIVISION",
-    "group": "16",
-    "advisor1": "Eka Widya Yuliani, S.Kom",
-    "advisor2": "Rosa Eliviani, S.Kom., M.T.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 22,
-    "nim": "0320220083",
-    "name": "DARU PUTRA ATMAGA",
-    "internship": "PT ASTRA AGRO LESTARI",
-    "group": "17",
-    "advisor1": "Ning Ratwastuti, S.T., M.Eng.",
-    "advisor2": "Sisia Dika Ariyanto, S.Kom., M.Kom",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 23,
-    "nim": "0320220101",
-    "name": "RASYIDIN AZIZ",
-    "internship": "PT ASTRA AGRO LESTARI",
-    "group": "",
-    "advisor1": "Ning Ratwastuti, S.T., M.Eng.",
-    "advisor2": "Sisia Dika Ariyanto, S.Kom., M.Kom",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 24,
-    "nim": "0320220066",
-    "name": "HANA NATASYA YUSUF",
-    "internship": "PT ASTRA AGRO LESTARI",
-    "group": "18",
-    "advisor1": "Eko Abdul Goffar, S.Kom",
-    "advisor2": "Rosa Eliviani, S.Kom., M.T.",
-    "thesisStatus": "pending",
-    "demoStatus": "pending"
-  },
-  {
-    "id": 25,
-    "nim": "0320220117",
-    "name": "PURNAMA SITI SYAMSIAH",
-    "internship": "PT ASTRA AGRO LESTARI",
-    "group": "",
-    "advisor1": "Eko Abdul Goffar, S.Kom",
-    "advisor2": "Rosa Eliviani, S.Kom., M.T.",
-    "thesisStatus": "pending",
-    "demoStatus": "pending"
-  },
-  {
-    "id": 26,
-    "nim": "0320220021",
-    "name": "RAVIANA ZAHRA FADHILLAH",
-    "internship": "PT ASTRA AGRO LESTARI",
-    "group": "19",
-    "advisor1": "Diya Namira Purba, S.Kom, M.Kom",
-    "advisor2": "Sasmito Budi Utomo, S.Si., M.T.I.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 27,
-    "nim": "0320220080",
-    "name": "THITANIA AULIASHAH LUPITA",
-    "internship": "PT ASTRA AGRO LESTARI",
-    "group": "",
-    "advisor1": "Diya Namira Purba, S.Kom, M.Kom",
-    "advisor2": "Sasmito Budi Utomo, S.Si., M.T.I.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 28,
-    "nim": "0320220055",
-    "name": "ABDULLAH HANIF",
-    "internship": "PT ASTRA DAIHATSU MOTOR",
-    "group": "20",
-    "advisor1": "Timotius Victory, S.Kom, M.Kom",
-    "advisor2": "Suhendra, S.T., M.TI.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 29,
-    "nim": "0320220064",
-    "name": "EDWIN JULIANTO",
-    "internship": "PT ASTRA DAIHATSU MOTOR",
-    "group": "21",
-    "advisor1": "Sisia Dika Ariyanto, S.Kom., M.Kom",
-    "advisor2": "Arie Kusumawati, S.Kom., M.T.I",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 30,
-    "nim": "0320220065",
-    "name": "FADILA ABIDAH",
-    "internship": "PT ASTRA DAIHATSU MOTOR",
-    "group": "",
-    "advisor1": "Sisia Dika Ariyanto, S.Kom., M.Kom",
-    "advisor2": "Arie Kusumawati, S.Kom., M.T.I",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 31,
-    "nim": "0320220005",
-    "name": "ELFA KHOIRUN NISSA",
-    "internship": "PT ASTRA DAIHATSU MOTOR",
-    "group": "22",
-    "advisor1": "Muhammad Ridha, S.T., M.Kom",
-    "advisor2": "Vian Ardiyansyah S. , S.S.T., M.Kom.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 32,
-    "nim": "0320220038",
-    "name": "HILMY MUBARAK GANDRING ARJUNA",
-    "internship": "PT ASTRA DAIHATSU MOTOR",
-    "group": "23",
-    "advisor1": "Rr. Kartika K. W., S.T., M.T.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 33,
-    "nim": "0320220091",
-    "name": "JAVIER MUHAMMAD HANIF",
-    "internship": "PT ASTRA DAIHATSU MOTOR",
-    "group": "24",
-    "advisor1": "Dwi Diana Wazaumi., S.Tr.Kom., MT.",
-    "advisor2": "Dr. Rida Indah Fariani, S.Si., M.T.I.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 34,
-    "nim": "0320220040",
-    "name": "KHAIRUNNISA ADITIA BASRI",
-    "internship": "PT ASTRA DAIHATSU MOTOR",
-    "group": "25",
-    "advisor1": "Eka Widya Yuliani, S.Kom",
-    "advisor2": "Arie Kusumawati, S.Kom., M.T.I",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 35,
-    "nim": "0320220070",
-    "name": "LUTHFI ARIE SUZAKI",
-    "internship": "PT ASTRA DAIHATSU MOTOR",
-    "group": "26",
-    "advisor1": "Suhendra, S.T., M.TI.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "pending"
-  },
-  {
-    "id": 36,
-    "nim": "0320220094",
-    "name": "MUHAMAD MUKHASIM",
-    "internship": "PT ASTRA DAIHATSU MOTOR",
-    "group": "27",
-    "advisor1": "Diya Namira Purba, S.Kom, M.Kom",
-    "advisor2": "Dr. Rida Indah Fariani, S.Si., M.T.I.",
-    "thesisStatus": "completed",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 37,
-    "nim": "0320220099",
-    "name": "RAFA WAHIDA",
-    "internship": "PT ASTRA DAIHATSU MOTOR",
-    "group": "28",
-    "advisor1": "Kristina Hutajulu, S.Kom., M.Kom",
-    "advisor2": "Rosa Eliviani, S.Kom., M.T.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 38,
-    "nim": "0320220081",
-    "name": "AFFIYAN NUR ROHIIMUS SULTHON",
-    "internship": "PT ASTRA HONDA MOTOR",
-    "group": "29",
-    "advisor1": "Indah Cyithia Devi, S.Kom",
-    "advisor2": "Suhendra, S.T., M.TI.",
-    "thesisStatus": "completed",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 39,
-    "nim": "0320220075",
-    "name": "MUHAMMAD RAFI AKBAR",
-    "internship": "PT ASTRA HONDA MOTOR",
-    "group": "",
-    "advisor1": "Indah Cyithia Devi, S.Kom",
-    "advisor2": "Suhendra, S.T., M.TI.",
-    "thesisStatus": "completed",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 40,
-    "nim": "0320220086",
-    "name": "FAHRIEL DWIFALDI",
-    "internship": "PT ASTRA HONDA MOTOR",
-    "group": "30",
-    "advisor1": "Dwi Diana Wazaumi., S.Tr.Kom., MT.",
-    "advisor2": "Suhendra, S.T., M.TI.",
-    "thesisStatus": "completed",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 41,
-    "nim": "0320220007",
-    "name": "FAKHRY AKMAL",
-    "internship": "PT ASTRA HONDA MOTOR",
-    "group": "31",
-    "advisor1": "Eka Widya Yuliani, S.Kom",
-    "advisor2": "Sasmito Budi Utomo, S.Si., M.T.I.",
-    "thesisStatus": "completed",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 42,
-    "nim": "0320220008",
-    "name": "FARRAS ABDILLAH",
-    "internship": "PT ASTRA HONDA MOTOR",
-    "group": "32",
-    "advisor1": "Diya Namira Purba, S.Kom, M.Kom",
-    "advisor2": "Arie Kusumawati, S.Kom., M.T.I",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 43,
-    "nim": "0320220100",
-    "name": "RAHMAT WAHYU BUDIYANTO",
-    "internship": "PT ASTRA HONDA MOTOR",
-    "group": "33",
-    "advisor1": "Ning Ratwastuti, S.T., M.Eng.",
-    "advisor2": "Kristina Hutajulu, S.Kom., M.Kom",
-    "thesisStatus": "completed",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 44,
-    "nim": "0320220077",
-    "name": "REVALINA FITRIANI",
-    "internship": "PT ASTRA HONDA MOTOR",
-    "group": "34",
-    "advisor1": "Yosep Setiawan, S.Kom",
-    "advisor2": "Suhendra, S.T., M.TI.",
-    "thesisStatus": "completed",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 45,
-    "nim": "0320220023",
-    "name": "RIZKY MULIA PERDANA",
-    "internship": "PT ASTRA HONDA MOTOR",
-    "group": "",
-    "advisor1": "Yosep Setiawan, S.Kom",
-    "advisor2": "Suhendra, S.T., M.TI.",
-    "thesisStatus": "completed",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 46,
-    "nim": "0320220037",
-    "name": "HATTA FAJRISKA SETIAWAN",
-    "internship": "PT ASTRAGRAPHIA INFORMATION TECHNOLOGI",
-    "group": "35",
-    "advisor1": "Radix Rascalia, S.T., M.T",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "pending"
-  },
-  {
-    "id": 47,
-    "nim": "0320220018",
-    "name": "MUHAMMAD WAHYUILAHI",
-    "internship": "PT ASTRAGRAPHIA INFORMATION TECHNOLOGI",
-    "group": "",
-    "advisor1": "Radix Rascalia, S.T., M.T",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "pending"
-  },
-  {
-    "id": 48,
-    "nim": "0320220090",
-    "name": "IKA AULIA PUTRI",
-    "internship": "PT ASTRAGRAPHIA INFORMATION TECHNOLOGI",
-    "group": "36",
-    "advisor1": "Rr. Kartika K. W., S.T., M.T.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 49,
-    "nim": "0320220039",
-    "name": "KARNISYA RAHMAH SYAH",
-    "internship": "PT ASTRAGRAPHIA INFORMATION TECHNOLOGI",
-    "group": "",
-    "advisor1": "Rr. Kartika K. W., S.T., M.T.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 50,
-    "nim": "0320220016",
-    "name": "MUHAMAD JILBRAN",
-    "internship": "PT ASTRAGRAPHIA INFORMATION TECHNOLOGI",
-    "group": "37",
-    "advisor1": "Eko Abdul Goffar, S.Kom",
-    "advisor2": "Rr. Kartika K. W., S.T., M.T.",
-    "thesisStatus": "pending",
-    "demoStatus": "pending"
-  },
-  {
-    "id": 51,
-    "nim": "0320220073",
-    "name": "MUHAMMAD FARHAN FADHLURRAHMAN",
-    "internship": "PT ASTRAGRAPHIA INFORMATION TECHNOLOGI",
-    "group": "38",
-    "advisor1": "Suhendra, S.T., M.TI.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 52,
-    "nim": "0320220074",
-    "name": "MUHAMMAD FATIH ALFALAHI",
-    "internship": "PT ASTRAGRAPHIA INFORMATION TECHNOLOGI",
-    "group": "39",
-    "advisor1": "Candra Bagus Kristanto, S.Kom",
-    "advisor2": "Dr. Rida Indah Fariani, S.Si., M.T.I.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 53,
-    "nim": "0320220052",
-    "name": "SATRIO MAHDII MUHAMMAD",
-    "internship": "PT ASTRAGRAPHIA INFORMATION TECHNOLOGI",
-    "group": "",
-    "advisor1": "Candra Bagus Kristanto, S.Kom",
-    "advisor2": "Dr. Rida Indah Fariani, S.Si., M.T.I.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 54,
-    "nim": "0320220044",
-    "name": "MUHAMMAD AL GHIFARI",
-    "internship": "PT FEDERAL IZUMI MANUFACTURING",
-    "group": "40",
-    "advisor1": "Ning Ratwastuti, S.T., M.Eng.",
-    "advisor2": "Muhammad Ridha, S.T., M.Kom",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 55,
-    "nim": "0320220022",
-    "name": "RENANDITA DYAH AYU KINTANA",
-    "internship": "PT FEDERAL IZUMI MANUFACTURING",
-    "group": "",
-    "advisor1": "Ning Ratwastuti, S.T., M.Eng.",
-    "advisor2": "Muhammad Ridha, S.T., M.Kom",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 56,
-    "nim": "0320220104",
-    "name": "SEKAR AYU RAMADHANI",
-    "internship": "PT FEDERAL NITTAN INDUSTRIES",
-    "group": "41",
-    "advisor1": "Muhammad Ridha, S.T., M.Kom",
-    "advisor2": "Radix Rascalia, S.T., M.T",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 57,
-    "nim": "0320220032",
-    "name": "DENI RIANA",
-    "internship": "PT FTS Automotive Indonesia",
-    "group": "42",
-    "advisor1": "Eka Widya Yuliani, S.Kom",
-    "advisor2": "Vian Ardiyansyah S. , S.S.T., M.Kom.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 58,
-    "nim": "0320220079",
-    "name": "SHADRINA FAUHANI",
-    "internship": "PT FTS Automotive Indonesia",
-    "group": "",
-    "advisor1": "Eka Widya Yuliani, S.Kom",
-    "advisor2": "Vian Ardiyansyah S. , S.S.T., M.Kom.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 59,
-    "nim": "0320220061",
-    "name": "ARDIKA SAKHA PRATAMA PURNOMO",
-    "internship": "PT GS BATTERY",
-    "group": "43",
-    "advisor1": "Timotius Victory, S.Kom, M.Kom",
-    "advisor2": "Vian Ardiyansyah S. , S.S.T., M.Kom.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 60,
-    "nim": "0320220102",
-    "name": "ROSA CHARERA DARMAWAN",
-    "internship": "PT GS BATTERY",
-    "group": "",
-    "advisor1": "Timotius Victory, S.Kom, M.Kom",
-    "advisor2": "Vian Ardiyansyah S. , S.S.T., M.Kom.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 61,
-    "nim": "0320220033",
-    "name": "DIYAH AYU SARASWATI",
-    "internship": "PT GS BATTERY",
-    "group": "44",
-    "advisor1": "Kristina Hutajulu, S.Kom., M.Kom",
-    "advisor2": "Vian Ardiyansyah S. , S.S.T., M.Kom.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 62,
-    "nim": "0320220054",
-    "name": "YAYA NURHIDAYATI",
-    "internship": "PT GS BATTERY",
-    "group": "",
-    "advisor1": "Kristina Hutajulu, S.Kom., M.Kom",
-    "advisor2": "Vian Ardiyansyah S. , S.S.T., M.Kom.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 63,
-    "nim": "0320220092",
-    "name": "JUAN RIVAEL SWAWIDJAYA",
-    "internship": "PT GS BATTERY",
-    "group": "45",
-    "advisor1": "Indah Cyithia Devi, S.Kom",
-    "advisor2": "Luthfi Atikah, S.Kom., M.Kom.",
-    "thesisStatus": "completed",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 64,
-    "nim": "0320220113",
-    "name": "NAUFAL FADHLURROHMAN",
-    "internship": "PT GS BATTERY",
-    "group": "",
-    "advisor1": "Indah Cyithia Devi, S.Kom",
-    "advisor2": "Luthfi Atikah, S.Kom., M.Kom.",
-    "thesisStatus": "completed",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 65,
-    "nim": "0320220013",
-    "name": "MARSA DINA WIBOWO",
-    "internship": "PT GS BATTERY",
-    "group": "46",
-    "advisor1": "Luthfi Atikah, S.Kom., M.Kom.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 66,
-    "nim": "0320220098",
-    "name": "QONITAH FAIRUZ",
-    "internship": "PT GS BATTERY",
-    "group": "",
-    "advisor1": "Luthfi Atikah, S.Kom., M.Kom.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 67,
-    "nim": "0320220014",
-    "name": "MERRY DYAH OCTAVYA",
-    "internship": "PT GS BATTERY",
-    "group": "47",
-    "advisor1": "Candra Bagus Kristanto, S.Kom",
-    "advisor2": "Rr. Kartika K. W., S.T., M.T.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 68,
-    "nim": "0320220050",
-    "name": "NINDA DELA FADILA",
-    "internship": "PT GS BATTERY",
-    "group": "",
-    "advisor1": "Candra Bagus Kristanto, S.Kom",
-    "advisor2": "Rr. Kartika K. W., S.T., M.T.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 69,
-    "nim": "0320220082",
-    "name": "AMELIA NURZAHIDAH",
-    "internship": "PT KAYABA INDONESIA",
-    "group": "48",
-    "advisor1": "Dr. Rida Indah Fariani, S.Si., M.T.I.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 70,
-    "nim": "0320220027",
-    "name": "ZAKIYA AMELDA AGUSTIN",
-    "internship": "PT KAYABA INDONESIA",
-    "group": "",
-    "advisor1": "Dr. Rida Indah Fariani, S.Si., M.T.I.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 71,
-    "nim": "0320220105",
-    "name": "SEPTIAN FRENGKY SITORUS",
-    "internship": "PT LINTAS MARGA SEDAYA",
-    "group": "49",
-    "advisor1": "Suhendra, S.T., M.TI.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 72,
-    "nim": "0320220063",
-    "name": "DICKY MUZAKKI",
-    "internship": "PT PAMAPERSADA NUSANTARA",
-    "group": "50",
-    "advisor1": "Dwi Diana Wazaumi., S.Tr.Kom., MT.",
-    "advisor2": "Radix Rascalia, S.T., M.T",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 73,
-    "nim": "0320220112",
-    "name": "ISKANDAR MAULANA",
-    "internship": "PT PAMAPERSADA NUSANTARA",
-    "group": "51",
-    "advisor1": "Vian Ardiyansyah S. , S.S.T., M.Kom.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 74,
-    "nim": "0320220049",
-    "name": "MUHAMMAD ZIKRI",
-    "internship": "PT SIGAP PRIMA ASTREA",
-    "group": "52",
-    "advisor1": "Vian Ardiyansyah S. , S.S.T., M.Kom.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 75,
-    "nim": "0320220051",
-    "name": "RIFAN FAUKA",
-    "internship": "PT SIGAP PRIMA ASTREA",
-    "group": "",
-    "advisor1": "Vian Ardiyansyah S. , S.S.T., M.Kom.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 76,
-    "nim": "0320220036",
-    "name": "FIKRI DWI WAHYUDA",
-    "internship": "PT TOPY PALINGDA MANUFACTURING INDONESIA",
-    "group": "53",
-    "advisor1": "Timotius Victory, S.Kom, M.Kom",
-    "advisor2": "Luthfi Atikah, S.Kom., M.Kom.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 77,
-    "nim": "0320220057",
-    "name": "ACHMAD ZAKY FAUZAN",
-    "internship": "PT TOYOTA MOTOR MANUFACTURING INDONESIA",
-    "group": "54",
-    "advisor1": "Diya Namira Purba, S.Kom, M.Kom",
-    "advisor2": "Sasmito Budi Utomo, S.Si., M.T.I.",
-    "thesisStatus": "pending",
-    "demoStatus": "pending"
-  },
-  {
-    "id": 78,
-    "nim": "0320220028",
-    "name": "ACHMAT SAUFATARO WINOTO",
-    "internship": "PT TOYOTA MOTOR MANUFACTURING INDONESIA",
-    "group": "55",
-    "advisor1": "Arie Kusumawati, S.Kom., M.T.I",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 79,
-    "nim": "0320220068",
-    "name": "INDAH NURACHMI INDRAYANA",
-    "internship": "PT TOYOTA MOTOR MANUFACTURING INDONESIA",
-    "group": "56",
-    "advisor1": "Luthfi Atikah, S.Kom., M.Kom.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 80,
-    "nim": "0320220011",
-    "name": "KHOIRUNISA NURAZIZAH",
-    "internship": "PT TOYOTA MOTOR MANUFACTURING INDONESIA",
-    "group": "57",
-    "advisor1": "Deyana Kusuma Wardani, S.Tr.Kom., M.Tr.Kom",
-    "advisor2": "Radix Rascalia, S.T., M.T",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 81,
-    "nim": "0320220041",
-    "name": "LABIB MUKHARAM SYAHPUTRA",
-    "internship": "PT TOYOTA MOTOR MANUFACTURING INDONESIA",
-    "group": "",
-    "advisor1": "Deyana Kusuma Wardani, S.Tr.Kom., M.Tr.Kom",
-    "advisor2": "Radix Rascalia, S.T., M.T",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 82,
-    "nim": "0320220069",
-    "name": "INTAN LARASATI",
-    "internship": "PT TRAKTOR NUSANTARA",
-    "group": "58",
-    "advisor1": "Rosa Eliviani, S.Kom., M.T.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 83,
-    "nim": "0320220115",
-    "name": "PETER SIONI SIA",
-    "internship": "PT TUAH TURANGGA AGUNG",
-    "group": "59",
-    "advisor1": "Rosa Eliviani, S.Kom., M.T.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 84,
-    "nim": "0320220116",
-    "name": "PRITI RIBIA",
-    "internship": "PT TUAH TURANGGA AGUNG",
-    "group": "",
-    "advisor1": "Rosa Eliviani, S.Kom., M.T.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 85,
-    "nim": "0320220118",
-    "name": "RIFKI MAULANA",
-    "internship": "PT TUAH TURANGGA AGUNG",
-    "group": "60",
-    "advisor1": "Rr. Kartika K. W., S.T., M.T.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 86,
-    "nim": "0320220056",
-    "name": "ABRORY BRAVA RIYANTO",
-    "internship": "PT UNITED TRACTORS PANDU ENGINEERING",
-    "group": "61",
-    "advisor1": "Dwi Diana Wazaumi., S.Tr.Kom., MT.",
-    "advisor2": "Sasmito Budi Utomo, S.Si., M.T.I.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 87,
-    "nim": "0320220053",
-    "name": "TRISHA ORLANDA SITOHANG",
-    "internship": "PT UNITED TRACTORS PANDU ENGINEERING",
-    "group": "",
-    "advisor1": "Dwi Diana Wazaumi., S.Tr.Kom., MT.",
-    "advisor2": "Sasmito Budi Utomo, S.Si., M.T.I.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 88,
-    "nim": "0320220060",
-    "name": "ANANDITA GADIS VALENTINE ACHIR SUBAGIO",
-    "internship": "PT UNITED TRACTORS PANDU ENGINEERING",
-    "group": "62",
-    "advisor1": "Sasmito Budi Utomo, S.Si., M.T.I.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "pending"
-  },
-  {
-    "id": 89,
-    "nim": "0320220006",
-    "name": "EMBUN AULIA DWI WARDANI",
-    "internship": "PT UNITED TRACTORS PANDU ENGINEERING",
-    "group": "63",
-    "advisor1": "Sasmito Budi Utomo, S.Si., M.T.I.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 90,
-    "nim": "0320220093",
-    "name": "MARWAH LUTHFIATUN NISA",
-    "internship": "PT UNITED TRACTORS PANDU ENGINEERING",
-    "group": "64",
-    "advisor1": "Sisia Dika Ariyanto, S.Kom., M.Kom",
-    "advisor2": "Rr. Kartika K. W., S.T., M.T.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 91,
-    "nim": "0320220106",
-    "name": "TEGUH ELDI PRATAMA",
-    "internship": "PT UNITED TRACTORS PANDU ENGINEERING",
-    "group": "",
-    "advisor1": "Sisia Dika Ariyanto, S.Kom., M.Kom",
-    "advisor2": "Rr. Kartika K. W., S.T., M.T.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 92,
-    "nim": "0320220095",
-    "name": "MUHAMMAD DAFFA ABIYYU SYADDAD",
-    "internship": "PT UNITED TRACTORS PANDU ENGINEERING",
-    "group": "65",
-    "advisor1": "Vian Ardiyansyah S. , S.S.T., M.Kom.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 93,
-    "nim": "0320220031",
-    "name": "AURELIA AZZAHRA",
-    "internship": "PT VELASTO INDONESIA",
-    "group": "66",
-    "advisor1": "Suhendra, S.T., M.TI.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 94,
-    "nim": "0320220009",
-    "name": "FIRA EKA TANISYA",
-    "internship": "PT VELASTO INDONESIA",
-    "group": "67",
-    "advisor1": "Diya Namira Purba, S.Kom, M.Kom",
-    "advisor2": "Rosa Eliviani, S.Kom., M.T.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 95,
-    "nim": "0320220076",
-    "name": "NABILA EMILLIA",
-    "internship": "PT VELASTO INDONESIA",
-    "group": "68",
-    "advisor1": "Muhammad Ridha, S.T., M.Kom",
-    "advisor2": "Rosa Eliviani, S.Kom., M.T.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 96,
-    "nim": "0320220001",
-    "name": "AHMAD FARHAN ARI MUKTI",
-    "internship": "PT YUTAKA MANUFACTURING INDONESIA",
-    "group": "69",
-    "advisor1": "Arie Kusumawati, S.Kom., M.T.I",
-    "advisor2": "",
-    "thesisStatus": "completed",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 97,
-    "nim": "0320220003",
-    "name": "BAYU ISWANDI",
-    "internship": "PT YUTAKA MANUFACTURING INDONESIA",
-    "group": "",
-    "advisor1": "Arie Kusumawati, S.Kom., M.T.I",
-    "advisor2": "",
-    "thesisStatus": "completed",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 98,
-    "nim": "0320220015",
-    "name": "MOHAMAD ARFIANSYAH PUTRA",
-    "internship": "YAYASAN KARYA BHAKTI UNITED TRACTORS",
-    "group": "70",
-    "advisor1": "Candra Bagus Kristanto, S.Kom",
-    "advisor2": "Rr. Kartika K. W., S.T., M.T.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 99,
-    "nim": "0320220108",
-    "name": "ANGGUN HARLISA PUSPITASARI",
-    "internship": "YAYASAN KARYA BHAKTI UNITED TRACTORS",
-    "group": "71",
-    "advisor1": "Indah Cyithia Devi, S.Kom",
-    "advisor2": "Vian Ardiyansyah S. , S.S.T., M.Kom.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 100,
-    "nim": "0320220114",
-    "name": "NURA KHOFIFAH TRI WARTAMI",
-    "internship": "YAYASAN KARYA BHAKTI UNITED TRACTORS",
-    "group": "72",
-    "advisor1": "Suhendra, S.T., M.TI.",
-    "advisor2": "",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 101,
-    "nim": "0320220119",
-    "name": "RINA FITRIANI",
-    "internship": "YAYASAN KARYA BHAKTI UNITED TRACTORS",
-    "group": "73",
-    "advisor1": "Sisia Dika Ariyanto, S.Kom., M.Kom",
-    "advisor2": "Sasmito Budi Utomo, S.Si., M.T.I.",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 102,
-    "nim": "0320220067",
-    "name": "I MADE DANANJAYA ADYATMA",
-    "internship": "PT ASTRA CREDIT COMPANIES",
-    "group": "74",
-    "advisor1": "Deyana Kusuma Wardani, S.Tr.Kom., M.Tr.Kom",
-    "advisor2": "Radix Rascalia, S.T., M.T",
-    "thesisStatus": "pending",
-    "demoStatus": "completed"
-  },
-  {
-    "id": 103,
-    "nim": "0320220024",
-    "name": "SULTHON SYAMIL BASSAM",
-    "internship": "PT ASTRA CREDIT COMPANIES",
-    "group": "76",
-    "advisor1": "Deyana Kusuma Wardani, S.Tr.Kom., M.Tr.Kom",
-    "advisor2": "Radix Rascalia, S.T., M.T",
-    "thesisStatus": "pending",
-    "demoStatus": "pending"
-  }
-];
+        // URL dari Google Sheet yang sudah dipublikasikan sebagai CSV
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJIoy8stf3ejowCYSzwdRaTgtd0QFNM-I1BLmJ60J61W7eMOSUJyLHKSkL9uxLLHN8G8L-GmozwHj3/pub?gid=280324814&single=true&output=csv';
 
-        let students = [...sampleData];
+        let students = [];
         let currentStudentId = null;
 
         // DOM Elements
         const studentTableBody = document.getElementById('student-table-body');
         const searchInput = document.getElementById('search-input');
         const filterSelect = document.getElementById('filter-select');
-        const refreshBtn = document.getElementById('refresh-btn');
         const editModal = document.getElementById('edit-modal');
         const closeModalBtn = document.getElementById('close-modal');
         const cancelEditBtn = document.getElementById('cancel-edit');
         const saveEditBtn = document.getElementById('save-edit');
-        const modalStudentName = document.getElementById('modal-student-name');
-        const modalStudentNim = document.getElementById('modal-student-nim');
-        const thesisRadios = document.getElementsByName('thesis-status');
-        const demoRadios = document.getElementsByName('demo-status');
 
-        // Initialize the dashboard
-        function initializeDashboard() {
-            // Make sure we have data to display
-            if (students.length === 0) {
-                students = [...sampleData]; // Ensure we're using the sample data
+        // Fungsi untuk mengambil dan mem-parsing data CSV
+        async function fetchData() {
+            try {
+                const response = await fetch(csvUrl);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const csvText = await response.text();
+                
+                const lines = csvText.trim().split('\r\n');
+                const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s+/g, ''));
+                
+                const data = lines.slice(1).map((line, index) => {
+                    const values = line.split(',');
+                    let student = { id: index + 1 };
+                    headers.forEach((header, i) => {
+                        student[header] = values[i] ? values[i].trim() : '';
+                    });
+                    student.thesisStatus = student.sidang.toUpperCase() === 'TRUE' ? 'completed' : 'pending';
+                    student.demoStatus = student.demopl.toUpperCase() === 'TRUE' ? 'completed' : 'pending';
+                    return student;
+                });
+                
+                students = data;
+                initializeDashboard();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                studentTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-600">Failed to load data. Please check the CSV link and make sure it's published.</td></tr>`;
             }
+        }
+
+        // Inisialisasi Dashboard
+        function initializeDashboard() {
+            if (students.length === 0) return;
             
             updateDashboardStats();
             renderStudentTable(students);
             updateLastUpdated();
             initializeGroupFilter();
 
-            // Add event listeners
             searchInput.addEventListener('input', filterStudents);
             filterSelect.addEventListener('change', filterStudents);
             closeModalBtn.addEventListener('click', closeModal);
             cancelEditBtn.addEventListener('click', closeModal);
             saveEditBtn.addEventListener('click', saveChanges);
-            
-            console.log("Dashboard initialized with", students.length, "students");
         }
 
-        // Update dashboard statistics
+        // Update statistik di kartu dashboard
         function updateDashboardStats() {
-            const totalStudents = students.length;
-            const thesisCompleted = students.filter(s => s.thesisStatus === 'completed').length;
-            const thesisPending = totalStudents - thesisCompleted;
-            const demoCompleted = students.filter(s => s.demoStatus === 'completed').length;
-            const demoPending = totalStudents - demoCompleted;
-            const completionRate = Math.round((thesisCompleted / totalStudents) * 100);
+            const total = students.length;
+            const thesisDone = students.filter(s => s.thesisStatus === 'completed').length;
+            const demoDone = students.filter(s => s.demoStatus === 'completed').length;
+            const progress = total > 0 ? Math.round(((thesisDone + demoDone) / (total * 2)) * 100) : 0;
 
-            document.getElementById('total-count').textContent = totalStudents;
-            document.getElementById('thesis-completed').textContent = thesisCompleted;
-            document.getElementById('thesis-total').textContent = totalStudents;
-            document.getElementById('demo-completed').textContent = demoCompleted;
-            document.getElementById('demo-total').textContent = totalStudents;
-            document.getElementById('completion-rate').textContent = `${completionRate}%`;
-            document.getElementById('completion-bar').style.width = `${completionRate}%`;
+            document.getElementById('total-count').textContent = total;
+            document.getElementById('thesis-completed').textContent = thesisDone;
+            document.getElementById('thesis-total').textContent = total;
+            document.getElementById('demo-completed').textContent = demoDone;
+            document.getElementById('demo-total').textContent = total;
+            document.getElementById('completion-rate').textContent = `${progress}%`;
+            document.getElementById('completion-bar').style.width = `${progress}%`;
         }
 
-        // Render student table
-        // Render student table
+        // Render tabel mahasiswa
         function renderStudentTable(data) {
-            console.log("Rendering table with", data.length, "students");
             studentTableBody.innerHTML = '';
-
             if (data.length === 0) {
-                const emptyRow = document.createElement('tr');
-                emptyRow.innerHTML = `<td colspan="9" class="px-6 py-4 text-center text-gray-500">No students found matching your criteria</td>`;
-                studentTableBody.appendChild(emptyRow);
+                studentTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4">No students found.</td></tr>`;
                 return;
             }
 
-            // Data tidak perlu di-sort, kita akan proses berdasarkan urutan asli.
             const processedData = [];
             for (let i = 0; i < data.length; i++) {
                 const student = data[i];
-                // Cek apakah mahasiswa ini adalah "ketua grup" (punya nomor kelompok)
-                if (student.group !== "") {
-                    // Hitung berapa banyak anggota berikutnya yang grupnya kosong
+                if (student.kelompok) {
                     let groupSize = 1;
                     let j = i + 1;
-                    while (j < data.length && data[j].group === "") {
+                    while (j < data.length && !data[j].kelompok) {
                         groupSize++;
                         j++;
                     }
-                    
-                    // Tambahkan properti rowspan pada "ketua grup"
                     processedData.push({ ...student, rowspan: groupSize, isMerged: false });
-
-                    // Tambahkan anggota grup (yang grupnya kosong)
                     for (let k = 1; k < groupSize; k++) {
                         processedData.push({ ...data[i + k], rowspan: 1, isMerged: true });
                     }
-                    
-                    // Lompat ke akhir grup yang baru saja diproses
                     i += groupSize - 1;
                 } else {
-                    // Kasus jika ada data dengan grup kosong di baris pertama (jarang terjadi)
                     processedData.push({ ...student, rowspan: 1, isMerged: false });
                 }
             }
 
-            // Proses rendering sama seperti sebelumnya, tapi menggunakan data yang sudah diproses
-            processedData.forEach(student => {
+            processedData.forEach((student, index) => {
                 const row = document.createElement('tr');
-                row.className = 'border-b border-gray-200';
-                
-                const thesisStatusClass = student.thesisStatus === 'completed' ? 'status-completed' : 'status-pending';
-                const demoStatusClass = student.demoStatus === 'completed' ? 'status-completed' : 'status-pending';
+                const isLastInGroup = (index === processedData.length - 1) || !processedData[index + 1].isMerged;
+                if (isLastInGroup) row.className = 'border-b border-gray-200';
 
-                let sharedColumnsHtml = '';
-                
-                // Jika baris ini BUKAN bagian dari merge, render kolom yang digabung
+                let sharedHtml = '';
                 if (!student.isMerged) {
-                    sharedColumnsHtml = `
-                    
-                        <td class="px-6 py-4" rowspan="${student.rowspan}">${student.internship}</td>
-                        <td class="px-6 py-4" rowspan="${student.rowspan}">${student.group}</td>
-                        <td class="px-6 py-4" rowspan="${student.rowspan}">${student.advisor1}</td>
-                        <td class="px-6 py-4" rowspan="${student.rowspan}">${student.advisor2}</td>
-                        <td class="px-6 py-4" rowspan="${student.rowspan}"> <span class="status-badge ${thesisStatusClass}">
-                            ${student.thesisStatus === 'completed' ? 'Completed' : 'Pending'}
-                        </span></td>
-                        <td class="px-6 py-4" rowspan="${student.rowspan}"><span class="status-badge ${demoStatusClass}">
-                            ${student.demoStatus === 'completed' ? 'Completed' : 'Pending'}
-                        </span></td>
-                        <td class="px-6 py-4" rowspan="${student.rowspan}">
-                        <button class="edit-btn px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors" data-id="${student.id}">
-                            Edit
-                        </button>
-                        </span></td>
+                    sharedHtml = `
+                        <td rowspan="${student.rowspan}">${student.tempatmagang}</td>
+                        <td rowspan="${student.rowspan}">${student.dospem1}</td>
+                        <td rowspan="${student.rowspan}">${student.dospem2}</td>
                     `;
                 }
 
                 row.innerHTML = `
-                    <td class="px-6 py-4">${student.nim}</td>
-                    <td class="px-6 py-4 font-medium">${student.name}</td>
-                    ${sharedColumnsHtml}
+                    <td>${student.nim}</td>
+                    <td class="font-medium">${student.nama}</td>
+                    ${sharedHtml}
+                    <td>${student.kelompok || '-'}</td>
+                    <td><span class="status-badge status-${student.thesisStatus}">${student.thesisStatus}</span></td>
+                    <td><span class="status-badge status-${student.demoStatus}">${student.demoStatus}</span></td>
+                    <td><button class="edit-btn px-3 py-1 bg-blue-100 text-blue-700 rounded-md" data-id="${student.id}">Edit</button></td>
                 `;
-                
                 studentTableBody.appendChild(row);
             });
             
-            // Add event listeners to edit buttons
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.addEventListener('click', () => openEditModal(parseInt(btn.dataset.id)));
             });
         }
-        // Initialize group filter
+        
+        // Inisialisasi filter grup
         function initializeGroupFilter() {
             const groupFilter = document.getElementById('group-filter');
-            const groups = [...new Set(students.map(student => student.group))].sort();
-            
-            groupFilter.innerHTML = '<option value="all">All Groups</option>';
-            groups.forEach(group => {
-                const option = document.createElement('option');
-                option.value = group;
-                option.textContent = `Group ${group}`;
-                groupFilter.appendChild(option);
-            });
-            
-            filterSelect.addEventListener('change', function() {
-                if (this.value === 'group') {
-                    groupFilter.classList.remove('hidden');
-                } else {
-                    groupFilter.classList.add('hidden');
-                }
+            const groups = [...new Set(students.filter(s => s.kelompok).map(s => s.kelompok))].sort((a,b) => a-b);
+            groupFilter.innerHTML = '<option value="">All Groups</option>';
+            groups.forEach(g => groupFilter.innerHTML += `<option value="${g}">Group ${g}</option>`);
+            groupFilter.addEventListener('change', filterStudents);
+            document.getElementById('filter-select').addEventListener('change', () => {
+                groupFilter.classList.toggle('hidden', document.getElementById('filter-select').value !== 'group');
                 filterStudents();
             });
-            
-            groupFilter.addEventListener('change', filterStudents);
         }
-
-        // Filter students based on search and filter
+        
+        // Filter data mahasiswa
         function filterStudents() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const filterValue = filterSelect.value;
-            const groupValue = document.getElementById('group-filter').value;
+            const search = searchInput.value.toLowerCase();
+            const filter = filterSelect.value;
+            const group = document.getElementById('group-filter').value;
             
-            let filteredStudents = [...students];
-            
-            // Apply search filter
-            if (searchTerm) {
-                filteredStudents = filteredStudents.filter(student => 
-                    student.name.toLowerCase().includes(searchTerm) || 
-                    student.nim.toLowerCase().includes(searchTerm) ||
-                    student.internship.toLowerCase().includes(searchTerm) ||
-                    student.group.toLowerCase().includes(searchTerm) ||
-                    student.advisor1.toLowerCase().includes(searchTerm) ||
-                    student.advisor2.toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            // Apply status filter
-            if (filterValue !== 'all' && filterValue !== 'group') {
-                switch (filterValue) {
-                    case 'thesis-completed':
-                        filteredStudents = filteredStudents.filter(s => s.thesisStatus === 'completed');
-                        break;
-                    case 'thesis-pending':
-                        filteredStudents = filteredStudents.filter(s => s.thesisStatus === 'pending');
-                        break;
-                    case 'demo-completed':
-                        filteredStudents = filteredStudents.filter(s => s.demoStatus === 'completed');
-                        break;
-                    case 'demo-pending':
-                        filteredStudents = filteredStudents.filter(s => s.demoStatus === 'pending');
-                        break;
-                }
-            }
-            
-            // Apply group filter
-            if (filterValue === 'group' && groupValue !== 'all') {
-                filteredStudents = filteredStudents.filter(s => s.group === groupValue);
-            }
-            
-            renderStudentTable(filteredStudents);
+            let filtered = students.filter(s => {
+                const searchMatch = !search || Object.values(s).some(v => String(v).toLowerCase().includes(search));
+                if (!searchMatch) return false;
+
+                const statusMatch = filter === 'all' || filter === 'group' ||
+                    (filter === 'thesis-completed' && s.thesisStatus === 'completed') ||
+                    (filter === 'thesis-pending' && s.thesisStatus === 'pending') ||
+                    (filter === 'demo-completed' && s.demoStatus === 'completed') ||
+                    (filter === 'demo-pending' && s.demoStatus === 'pending');
+                if (!statusMatch) return false;
+
+                const groupMatch = filter !== 'group' || !group || s.kelompok === group;
+                return groupMatch;
+            });
+            renderStudentTable(filtered);
         }
 
-        // Open edit modal
+        // Buka modal edit
         function openEditModal(studentId) {
             const student = students.find(s => s.id === studentId);
             if (!student) return;
-            
             currentStudentId = studentId;
-            modalStudentName.textContent = student.name;
-            modalStudentNim.textContent = student.nim;
-            document.getElementById('modal-student-group').textContent = student.group;
-            document.getElementById('modal-student-internship').textContent = student.internship;
-            
-            // Set radio button values
-            thesisRadios.forEach(radio => {
-                radio.checked = radio.value === student.thesisStatus;
-            });
-            
-            demoRadios.forEach(radio => {
-                radio.checked = radio.value === student.demoStatus;
-            });
-            
+            document.getElementById('modal-student-name').textContent = student.nama;
+            document.getElementById('modal-student-nim').textContent = student.nim;
+            document.getElementById('modal-student-group').textContent = student.kelompok || '(anggota)';
+            document.getElementById('modal-student-internship').textContent = student.tempatmagang;
+            document.querySelectorAll('input[name="thesis-status"]').forEach(r => r.checked = r.value === student.thesisStatus);
+            document.querySelectorAll('input[name="demo-status"]').forEach(r => r.checked = r.value === student.demoStatus);
             editModal.classList.remove('hidden');
         }
 
-        // Close edit modal
+        // Tutup modal
         function closeModal() {
             editModal.classList.add('hidden');
             currentStudentId = null;
         }
 
-        // Save changes from modal
+        // Simpan perubahan dari modal
         function saveChanges() {
             if (currentStudentId === null) return;
+
+            // 1. Ambil status dari modal ('completed' atau 'pending')
+            const thesisStatusValue = document.querySelector('input[name="thesis-status"]:checked').value;
+            const demoStatusValue = document.querySelector('input[name="demo-status"]:checked').value;
+
+            // 2. Konversi status ke format "TRUE" / "FALSE" sesuai kolom di Sheet
+            const newSidangStatus = thesisStatusValue === 'completed' ? 'TRUE' : 'FALSE';
+            const newDemoPlStatus = demoStatusValue === 'completed' ? 'TRUE' : 'FALSE';
+
+            // --- Logika untuk menemukan semua anggota kelompok (tidak berubah) ---
+            const clickedIdx = students.findIndex(s => s.id === currentStudentId);
+            if (clickedIdx === -1) return;
+
+            let leaderIdx = clickedIdx;
+            if (!students[leaderIdx].kelompok) {
+                while (leaderIdx > 0 && !students[leaderIdx].kelompok) {
+                    leaderIdx--;
+                }
+            }
             
-            const studentIndex = students.findIndex(s => s.id === currentStudentId);
-            if (studentIndex === -1) return;
-            
-            // Get selected values
-            let thesisStatus = 'pending';
-            let demoStatus = 'pending';
-            
-            thesisRadios.forEach(radio => {
-                if (radio.checked) thesisStatus = radio.value;
-            });
-            
-            demoRadios.forEach(radio => {
-                if (radio.checked) demoStatus = radio.value;
-            });
-            
-            // Update student data
-            students[studentIndex].thesisStatus = thesisStatus;
-            students[studentIndex].demoStatus = demoStatus;
-            
-            // Update UI
+            // 3. Update data untuk semua anggota kelompok
+            let memberIdx = leaderIdx;
+            while (memberIdx < students.length) {
+                // Update properti 'sidang' dan 'demopl' dengan nilai TRUE/FALSE
+                students[memberIdx].sidang = newSidangStatus;
+                students[memberIdx].demopl = newDemoPlStatus;
+                
+                // Update juga status 'completed'/'pending' agar UI langsung berubah
+                students[memberIdx].thesisStatus = thesisStatusValue;
+                students[memberIdx].demoStatus = demoStatusValue;
+
+                // Hentikan loop jika sudah mencapai akhir grup
+                if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok) {
+                    break;
+                }
+                memberIdx++;
+            }
+
+            // --- Perbarui UI (tidak berubah) ---
             updateDashboardStats();
-            filterStudents(); // Re-apply current filters
+            filterStudents();
             updateLastUpdated();
             
-            // Show success message
+            // Tampilkan pesan sukses
             const successMessage = document.createElement('div');
             successMessage.className = 'fixed bottom-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-md z-50';
-            successMessage.innerHTML = `
-                <div class="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <p>Student status updated successfully!</p>
-                </div>
-            `;
+            successMessage.innerHTML = `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg><p>Status kelompok berhasil diperbarui!</p></div>`;
             document.body.appendChild(successMessage);
-            
-            // Remove success message after 3 seconds
-            setTimeout(() => {
-                successMessage.remove();
-            }, 3000);
+            setTimeout(() => { successMessage.remove(); }, 3000);
             
             closeModal();
         }
-
-        // Refresh data
-        function refreshData() {
-            // In a real application, this would fetch fresh data from the spreadsheet
-            // For this demo, we'll just simulate a refresh
-            const refreshBtn = document.getElementById('refresh-btn');
-            refreshBtn.disabled = true;
-            refreshBtn.innerHTML = `
-                <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Refreshing...
-            `;
-            
-            setTimeout(() => {
-                // Simulate some random changes to the data
-                students.forEach(student => {
-                    if (Math.random() > 0.8) {
-                        student.thesisStatus = Math.random() > 0.5 ? 'completed' : 'pending';
-                    }
-                    if (Math.random() > 0.8) {
-                        student.demoStatus = Math.random() > 0.5 ? 'completed' : 'pending';
-                    }
-                });
-                
-                updateDashboardStats();
-                filterStudents();
-                updateLastUpdated();
-                
-                refreshBtn.disabled = false;
-                refreshBtn.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Refresh Data
-                `;
-                
-                // Show success message
-                const successMessage = document.createElement('div');
-                successMessage.className = 'fixed bottom-4 right-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded shadow-md z-50';
-                successMessage.innerHTML = `
-                    <div class="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p>Data refreshed successfully!</p>
-                    </div>
-                `;
-                document.body.appendChild(successMessage);
-                
-                // Remove success message after 3 seconds
-                setTimeout(() => {
-                    successMessage.remove();
-                }, 3000);
-            }, 1500);
-        }
-
-        // Update last updated timestamp
+        // Update waktu terakhir
         function updateLastUpdated() {
-            const now = new Date();
-            const formattedDate = now.toLocaleDateString('id-ID', { 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById('last-updated').textContent = formattedDate;
+            document.getElementById('last-updated').textContent = new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }).replace(/\./g, ':');
         }
 
-        // Initialize the dashboard when the page loads
-        window.addEventListener('DOMContentLoaded', function() {
-            console.log("DOM loaded, initializing dashboard");
-            // Force the sample data to be used
-            students = [...sampleData];
-            initializeDashboard();
-        });
+        // Mulai aplikasi
+        window.addEventListener('DOMContentLoaded', fetchData);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9605ca3bc54df8fa',t:'MTc1MjcxMzg5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
