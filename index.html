@@ -205,35 +205,29 @@
         const cancelEditBtn = document.getElementById('cancel-edit');
         const saveEditBtn = document.getElementById('save-edit');
 
-        // Fungsi untuk mengambil dan mem-parsing data CSV
+        // Di bagian paling atas script Anda, ganti URL lama dengan yang baru
+        const webAppUrl = 'https://script.google.com/macros/s/AKfycbwA3nzBgKMnCmRSsikA3pKG6zXJRK4O96iNBMtzaqaYnqnE2cRejP7a6dUMUlfjHdesrg/exec';
+
+        // Ganti seluruh fungsi fetchData Anda dengan ini
         async function fetchData() {
             try {
-                // Menambahkan opsi { cache: 'no-cache' } untuk mengatasi masalah redirect dan caching
-                const response = await fetch(csvUrl, { cache: 'no-cache' }); 
+                const response = await fetch(webAppUrl); // Memanggil API Anda
+                if (!response.ok) throw new Error('Gagal menghubungi API Apps Script');
                 
-                if (!response.ok) throw new Error('Network response was not ok');
-                const csvText = await response.text();
+                const data = await response.json();
                 
-                // Kode parsing selanjutnya tidak berubah...
-                const lines = csvText.trim().split('\r\n');
-                const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s+/g, ''));
+                // Proses data JSON yang diterima dari API Anda
+                students = data.map(student => ({
+                    ...student,
+                    thesisStatus: student.sidang?.toString().toUpperCase() === 'TRUE' ? 'completed' : 'pending',
+                    demoStatus: student.demopl?.toString().toUpperCase() === 'TRUE' ? 'completed' : 'pending'
+                }));
                 
-                const data = lines.slice(1).map((line, index) => {
-                    const values = line.split(',');
-                    let student = { id: index + 1 };
-                    headers.forEach((header, i) => {
-                        student[header] = values[i] ? values[i].trim() : '';
-                    });
-                    student.thesisStatus = student.sidang.toUpperCase() === 'TRUE' ? 'completed' : 'pending';
-                    student.demoStatus = student.demopl.toUpperCase() === 'TRUE' ? 'completed' : 'pending';
-                    return student;
-                });
-                
-                students = data;
                 initializeDashboard();
+
             } catch (error) {
-                console.error('Error fetching data:', error);
-                studentTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-600">Failed to load data. Please check the CSV link and make sure it's published.</td></tr>`;
+                console.error('Error fetching data via Apps Script:', error);
+                studentTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-600">Gagal memuat data. Pastikan URL Web App sudah benar dan di-deploy dengan benar.</td></tr>`;
             }
         }
 
