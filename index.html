@@ -496,7 +496,20 @@
                     fontSize: 8
                 },
                 headStyles: {
-                    fillColor: [30, 64, 175] // warna biru tua
+                    fillColor: [30, 64, 175], // biru tua untuk header
+                    textColor: [255, 255, 255] // putih
+                },
+                didParseCell: function (data) {
+                    const rowIndex = data.row.index;
+                    const columnIndex = data.column.index;
+            
+                    // Kolom ke-6 adalah status Sidang TA (indeks 6)
+                    const sidangValue = tableData[rowIndex][6];
+            
+                    // Jika status Sidang = "Completed", warnai seluruh barisnya hijau muda
+                    if (sidangValue === 'Completed') {
+                        data.cell.styles.fillColor = [220, 252, 231]; // hijau muda (Tailwind: green-100)
+                    }
                 }
             });
         
