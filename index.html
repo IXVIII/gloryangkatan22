@@ -208,10 +208,13 @@
         // Fungsi untuk mengambil dan mem-parsing data CSV
         async function fetchData() {
             try {
-                const response = await fetch(csvUrl);
+                // Menambahkan opsi { cache: 'no-cache' } untuk mengatasi masalah redirect dan caching
+                const response = await fetch(csvUrl, { cache: 'no-cache' }); 
+                
                 if (!response.ok) throw new Error('Network response was not ok');
                 const csvText = await response.text();
                 
+                // Kode parsing selanjutnya tidak berubah...
                 const lines = csvText.trim().split('\r\n');
                 const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s+/g, ''));
                 
