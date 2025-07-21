@@ -486,8 +486,9 @@
                 student.thesisStatus === 'completed' ? 'Completed' : 'Pending',
                 student.demoStatus === 'completed' ? 'Completed' : 'Pending'
             ]);
-        
+            doc.setFont("poppins", "bold");
             doc.text("Data Progress Mahasiswa", 14, 14);
+            doc.setFont("poppins", "normal");
             doc.autoTable({
                 head: [['NIM', 'Nama', 'Tempat Magang', 'Kelompok', 'Dospem 1', 'Dospem 2', 'Sidang', 'Demo PL']],
                 body: tableData,
@@ -505,10 +506,12 @@
             
                     // Kolom ke-6 adalah status Sidang TA (indeks 6)
                     const sidangValue = tableData[rowIndex][6];
-            
+                    const demoValue = tableData[rowIndex][7];
                     // Jika status Sidang = "Completed", warnai seluruh barisnya hijau muda
                     if (sidangValue === 'Completed') {
                         data.cell.styles.fillColor = [220, 252, 231]; // hijau muda (Tailwind: green-100)
+                    }else if ( sidangValue === 'Pending' && demoValue === 'Pending') {
+                        data.cell.styles.fillColor = [254, 226, 225];
                     }
                 }
             });
