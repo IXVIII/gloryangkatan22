@@ -252,7 +252,21 @@
                 studentTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-600">Failed to load data. Please check the Web App URL and ensure it's deployed correctly.</td></tr>`;
             }
         }
-
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
         // Initialize Dashboard
         function initializeDashboard() {
             if (students.length === 0) return;
