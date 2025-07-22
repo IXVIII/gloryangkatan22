@@ -138,7 +138,7 @@
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Dospem 2</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Sidang</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Demo PL</th>
-<!--                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Actions</th> -->
+                                <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="student-table-body">
@@ -222,6 +222,7 @@
                 // Proses data JSON yang diterima dari API Anda
                 students = data.map(student => ({
                     ...student,
+                    id: index,
                     thesisStatus: student.sidang?.toString().toUpperCase() === 'TRUE' ? 'completed' : 'pending',
                     demoStatus: student.demopl?.toString().toUpperCase() === 'TRUE' ? 'completed' : 'pending'
                 }));
@@ -247,7 +248,7 @@
             filterSelect.addEventListener('change', filterStudents);
             closeModalBtn.addEventListener('click', closeModal);
             cancelEditBtn.addEventListener('click', closeModal);
-            saveEditBtn.addEventListener('click', saveChanges);
+            saveEditBtn.addEventListener('click', nges);
         }
 
         // Update statistik di kartu dashboard
@@ -319,6 +320,10 @@
                         <td class="px-6 py-4" rowspan="${student.rowspan}"><span class="status-badge ${demoStatusClass}">
                             ${student.demoStatus === 'completed' ? 'Completed' : 'Pending'}
                         </span></td>
+                        <td class="px-6 py-4" rowspan="${student.rowspan}">
+                            <button class="edit-btn px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" 
+                                    data-id="${student.id}">Edit</button>
+                        </td>
                     `;
                     
                 }
@@ -394,64 +399,46 @@
 
         // Simpan perubahan dari modal ke Google Sheet via Apps Script
         async function saveChanges() {
-            if (currentStudentId === null) return;
-
-            const thesisStatusValue = document.querySelector('input[name="thesis-status"]:checked').value;
-            const demoStatusValue = document.querySelector('input[name="demo-status"]:checked').value;
-
-            // --- Logika untuk menemukan semua anggota kelompok (tidak berubah) ---
-            const clickedIdx = students.findIndex(s => s.id === currentStudentId);
-            if (clickedIdx === -1) return;
-
-            let leaderIdx = clickedIdx;
-            if (students[leaderIdx].kelompok === '-') {
-                while(leaderIdx > 0 && students[leaderIdx].kelompok === '-') leaderIdx--;
-            }
+        if (currentStudentId === null) return;
+    
+        const thesisStatusValue = document.querySelector('input[name="thesis-status"]:checked').value;
+        const demoStatusValue = document.querySelector('input[name="demo-status"]:checked').value;
+    
+        // Temukan student yang akan diupdate
+        const studentToUpdate = students.find(s => s.id === currentStudentId);
+        if (!studentToUpdate) return;
+    
+        // Format data sesuai dengan yang diharapkan Apps Script
+        const payload = {
+            action: "update",
+            nim: studentToUpdate.nim,
+            sidang: thesisStatusValue === 'completed',
+            demopl: demoStatusValue === 'completed'
+        };
+    
+        try {
+            const response = await fetch(webAppUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+    
+            const result = await response.json();
             
-            // --- Logika BARU untuk mengirim update ---
-            const updatePromises = [];
-            let memberIdx = leaderIdx;
-
-            while(memberIdx < students.length) {
-                const studentToUpdate = students[memberIdx];
-                
-                const payload = {
-                    nim: studentToUpdate.nim,
-                    sidang: thesisStatusValue === 'completed' ? 'TRUE' : 'FALSE',
-                    demopl: demoStatusValue === 'completed' ? 'TRUE' : 'FALSE'
-                };
-
-                // Kirim data menggunakan metode POST
-                // mode: 'no-cors' DIHAPUS agar bisa melihat respons server
-                const updatePromise = fetch(webAppUrl, {
-                    method: 'POST',
-                    // Hapus baris 'mode: "no-cors",'
-                    headers: {
-                        "Content-Type": "text/plain;charset=utf-8", // Gunakan text/plain untuk menghindari preflight
-                    },
-                    body: JSON.stringify(payload),
-                });
-
-                updatePromises.push(updatePromise);
-
-                if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok !== '-') {
-                    break;
-                }
-                memberIdx++;
+            if (result.success) {
+                alert("Data berhasil diupdate!");
+                fetchData(); // Refresh data
+                closeModal();
+            } else {
+                throw new Error(result.message || "Gagal mengupdate data");
             }
-            
-            // Tunggu semua proses update selesai dan muat ulang data
-            try {
-                const responses = await Promise.all(updatePromises);
-                console.log("Server responses:", responses);
-                fetchData(); // Muat ulang data dari sheet untuk memastikan sinkron
-            } catch (error) {
-                console.error("Gagal mengirim update ke server:", error);
-                alert("Gagal menyimpan perubahan ke server. Silakan cek console untuk detail.");
-            }
-            
-            closeModal();
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Gagal mengupdate data: " + error.message);
         }
+    }
         // Update waktu terakhir
         function updateLastUpdated() {
             document.getElementById('last-updated').textContent = new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }).replace(/\./g, ':');
