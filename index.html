@@ -214,15 +214,13 @@
         // Ganti seluruh fungsi fetchData Anda dengan ini
         async function fetchData() {
             try {
-                const response = await fetch(webAppUrl); // Memanggil API Anda
+                const response = await fetch(webAppUrl);
                 if (!response.ok) throw new Error('Gagal menghubungi API Apps Script');
                 
                 const data = await response.json();
                 
-                // Proses data JSON yang diterima dari API Anda
                 students = data.map(student => ({
                     ...student,
-                    id: index,
                     thesisStatus: student.sidang?.toString().toUpperCase() === 'TRUE' ? 'completed' : 'pending',
                     demoStatus: student.demopl?.toString().toUpperCase() === 'TRUE' ? 'completed' : 'pending'
                 }));
@@ -248,10 +246,9 @@
             filterSelect.addEventListener('change', filterStudents);
             closeModalBtn.addEventListener('click', closeModal);
             cancelEditBtn.addEventListener('click', closeModal);
-            saveEditBtn.addEventListener('click', nges);
+            saveEditBtn.addEventListener('click', saveChanges);
         }
 
-        // Update statistik di kartu dashboard
         function updateDashboardStats() {
             const total = students.length;
             const thesisDone = students.filter(s => s.thesisStatus === 'completed').length;
@@ -278,12 +275,9 @@
             const processedData = [];
             for (let i = 0; i < data.length; i++) {
                 const student = data[i];
-                // === PERUBAHAN DI SINI ===
-                // Sekarang, "ketua grup" adalah yang kelompoknya TIDAK SAMA DENGAN '-'
                 if (student.kelompok !== "") {
                     let groupSize = 1;
                     let j = i + 1;
-                    // Dan "anggota grup" adalah yang kelompoknya SAMA DENGAN '-'
                     while (j < data.length && data[j].kelompok === "") {
                         groupSize++;
                         j++;
@@ -294,12 +288,10 @@
                     }
                     i += groupSize - 1;
                 } else {
-                    // Jika baris pertama dimulai dengan '-', anggap sebagai grup tunggal
                     processedData.push({ ...student, rowspan: 1, isMerged: false });
                 }
             }
 
-            // Bagian rendering selanjutnya tidak ada perubahan logika
             processedData.forEach((student, index) => {
                 const row = document.createElement('tr');
                 const isLastInGroup = (index === processedData.length - 1) || !processedData[index + 1].isMerged;
@@ -322,10 +314,9 @@
                         </span></td>
                         <td class="px-6 py-4" rowspan="${student.rowspan}">
                             <button class="edit-btn px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" 
-                                    data-id="${student.id}">Edit</button>
+                                    data-nim="${student.nim}">Edit</button>
                         </td>
                     `;
-                    
                 }
 
                 row.innerHTML = `
@@ -337,9 +328,10 @@
             });
             
             document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', () => openEditModal(parseInt(btn.dataset.id)));
+                btn.addEventListener('click', () => openEditModal(btn.dataset.nim));
             });
         }
+
         
         // Inisialisasi filter grup
         function initializeGroupFilter() {
@@ -378,10 +370,10 @@
         }
 
         // Buka modal edit
-        function openEditModal(studentId) {
-            const student = students.find(s => s.id === studentId);
+        function openEditModal(studentNim) {
+            const student = students.find(s => s.nim === studentNim);
             if (!student) return;
-            currentStudentId = studentId;
+            currentStudentNim = studentNim;
             document.getElementById('modal-student-name').textContent = student.nama;
             document.getElementById('modal-student-nim').textContent = student.nim;
             document.getElementById('modal-student-group').textContent = student.kelompok || '(anggota)';
@@ -394,51 +386,46 @@
         // Tutup modal
         function closeModal() {
             editModal.classList.add('hidden');
-            currentStudentId = null;
+            currentStudentNim = null;
         }
 
         // Simpan perubahan dari modal ke Google Sheet via Apps Script
         async function saveChanges() {
-        if (currentStudentId === null) return;
-    
-        const thesisStatusValue = document.querySelector('input[name="thesis-status"]:checked').value;
-        const demoStatusValue = document.querySelector('input[name="demo-status"]:checked').value;
-    
-        // Temukan student yang akan diupdate
-        const studentToUpdate = students.find(s => s.id === currentStudentId);
-        if (!studentToUpdate) return;
-    
-        // Format data sesuai dengan yang diharapkan Apps Script
-        const payload = {
-            action: "update",
-            nim: studentToUpdate.nim,
-            sidang: thesisStatusValue === 'completed',
-            demopl: demoStatusValue === 'completed'
-        };
-    
-        try {
-            const response = await fetch(webAppUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload)
-            });
-    
-            const result = await response.json();
-            
-            if (result.success) {
-                alert("Data berhasil diupdate!");
-                fetchData(); // Refresh data
-                closeModal();
-            } else {
-                throw new Error(result.message || "Gagal mengupdate data");
+            if (!currentStudentNim) return;
+
+            const thesisStatusValue = document.querySelector('input[name="thesis-status"]:checked').value;
+            const demoStatusValue = document.querySelector('input[name="demo-status"]:checked').value;
+
+            const payload = {
+                action: "update",
+                nim: currentStudentNim,
+                sidang: thesisStatusValue === 'completed',
+                demopl: demoStatusValue === 'completed'
+            };
+
+            try {
+                const response = await fetch(webAppUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert("Data berhasil diupdate!");
+                    fetchData(); // Refresh data
+                    closeModal();
+                } else {
+                    throw new Error(result.message || "Gagal mengupdate data");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Gagal mengupdate data: " + error.message);
             }
-        } catch (error) {
-            console.error("Error:", error);
-            alert("Gagal mengupdate data: " + error.message);
         }
-    }
         // Update waktu terakhir
         function updateLastUpdated() {
             document.getElementById('last-updated').textContent = new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }).replace(/\./g, ':');
