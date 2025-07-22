@@ -216,7 +216,7 @@
 
     <script>
         // URL Web App Google Apps Script
-        const webAppUrl = 'https://script.google.com/macros/s/AKfycbyUH_QjvPKXs3XvtHomQ5xwIJCkpHYa-PX8aWOmZU54GGnUPy-REO20uZr4fSn_61wrog/exec';
+        const webAppUrl = 'https://script.google.com/macros/s/AKfycbzZQHIKTNp17rwoj8FlFeJHFQOjaMBG30NkMqhnXaP2NsTRltmFS9QzUJF8howEBZuKwQ/exec';
 
         let students = [];
         let currentStudentId = null;
@@ -443,44 +443,44 @@
             loadingOverlay.classList.remove('hidden');
         
             try {
-                // Find all students in the group that need to be updated
-                const clickedIdx = students.findIndex(s => s.id === currentStudentId);
-                if (clickedIdx === -1) return;
+            // Find all students in the group that need to be updated
+            const clickedIdx = students.findIndex(s => s.id === currentStudentId);
+            if (clickedIdx === -1) return;
         
-                let leaderIdx = clickedIdx;
-                if (students[leaderIdx].kelompok === "") {
-                    while(leaderIdx > 0 && students[leaderIdx].kelompok === "") leaderIdx--;
+            let leaderIdx = clickedIdx;
+            if (students[leaderIdx].kelompok === "") {
+                while (leaderIdx > 0 && students[leaderIdx].kelompok === "") leaderIdx--;
+            }
+        
+            const updatePromises = [];
+            let memberIdx = leaderIdx;
+        
+            while (memberIdx < students.length) {
+                const studentToUpdate = students[memberIdx];
+        
+                const payload = {
+                    action: "update",
+                    nim: studentToUpdate.nim,
+                    sidang: thesisStatusValue === 'completed',
+                    demopl: demoStatusValue === 'completed'
+                };
+        
+                const updatePromise = fetch(webAppUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+        
+                updatePromises.push(updatePromise);
+        
+                // Stop if next student is in a different group or out of range
+                if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok !== "") {
+                    break;
                 }
-                
-                const updatePromises = [];
-                let memberIdx = leaderIdx;
-        
-                while(memberIdx < students.length) {
-                    const studentToUpdate = students[memberIdx];
-                    
-                    const payload = {
-                        action: "update",
-                        nim: studentToUpdate.nim,
-                        sidang: thesisStatusValue === 'completed',
-                        demopl: demoStatusValue === 'completed'
-                    };
-        
-                    // Method 1: Using FormData to avoid preflight
-                    const formData = new FormData();
-                    formData.append('data', JSON.stringify(payload));
-        
-                    const updatePromise = fetch(webAppUrl, {
-                        method: 'POST',
-                        body: formData
-                    });
-        
-                    updatePromises.push(updatePromise);
-        
-                    if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok !== "") {
-                        break;
-                    }
-                    memberIdx++;
-                }
+                memberIdx++;
+            }
                 
                 // Wait for all updates to complete
                 const responses = await Promise.all(updatePromises);
