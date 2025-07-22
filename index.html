@@ -432,20 +432,21 @@
         }
 
         // Save changes
+        // Save changes - Updated version to avoid CORS issues
         async function saveChanges() {
             if (currentStudentId === null) return;
-
+        
             const thesisStatusValue = document.querySelector('input[name="thesis-status"]:checked').value;
             const demoStatusValue = document.querySelector('input[name="demo-status"]:checked').value;
-
+        
             // Show loading overlay
             loadingOverlay.classList.remove('hidden');
-
+        
             try {
                 // Find all students in the group that need to be updated
                 const clickedIdx = students.findIndex(s => s.id === currentStudentId);
                 if (clickedIdx === -1) return;
-
+        
                 let leaderIdx = clickedIdx;
                 if (students[leaderIdx].kelompok === "") {
                     while(leaderIdx > 0 && students[leaderIdx].kelompok === "") leaderIdx--;
@@ -453,7 +454,7 @@
                 
                 const updatePromises = [];
                 let memberIdx = leaderIdx;
-
+        
                 while(memberIdx < students.length) {
                     const studentToUpdate = students[memberIdx];
                     
@@ -463,17 +464,18 @@
                         sidang: thesisStatusValue === 'completed',
                         demopl: demoStatusValue === 'completed'
                     };
-
+        
+                    // Method 1: Using FormData to avoid preflight
+                    const formData = new FormData();
+                    formData.append('data', JSON.stringify(payload));
+        
                     const updatePromise = fetch(webAppUrl, {
                         method: 'POST',
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(payload),
+                        body: formData
                     });
-
+        
                     updatePromises.push(updatePromise);
-
+        
                     if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok !== "") {
                         break;
                     }
