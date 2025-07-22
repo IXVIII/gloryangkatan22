@@ -193,8 +193,8 @@
     </div>
 
     <script>
-        // URL dari Google Sheet yang sudah dipublikasikan sebagai CSV
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJIoy8stf3ejowCYSzwdRaTgtd0QFNM-I1BLmJ60J61W7eMOSUJyLHKSkL9uxLLHN8G8L-GmozwHj3/pub?output=csv';
+        // URL Web App Google Apps Script
+        const webAppUrl = 'https://script.google.com/macros/s/AKfycbwA3nzBgKMnCmRSsikA3pKG6zXJRK4O96iNBMtzaqaYnqnE2cRejP7a6dUMUlfjHdesrg/exec';
 
         let students = [];
         let currentStudentId = null;
@@ -207,19 +207,16 @@
         const closeModalBtn = document.getElementById('close-modal');
         const cancelEditBtn = document.getElementById('cancel-edit');
         const saveEditBtn = document.getElementById('save-edit');
+        const loadingOverlay = document.getElementById('loading-overlay');
 
-        // Di bagian paling atas script Anda, ganti URL lama dengan yang baru
-        const webAppUrl = 'https://script.google.com/macros/s/AKfycbwA3nzBgKMnCmRSsikA3pKG6zXJRK4O96iNBMtzaqaYnqnE2cRejP7a6dUMUlfjHdesrg/exec';
-
-        // Ganti seluruh fungsi fetchData Anda dengan ini
+        // Fetch data from Google Apps Script
         async function fetchData() {
             try {
-                const response = await fetch(webAppUrl); // Memanggil API Anda
-                if (!response.ok) throw new Error('Gagal menghubungi API Apps Script');
+                const response = await fetch(webAppUrl);
+                if (!response.ok) throw new Error('Failed to fetch data from Apps Script');
                 
                 const data = await response.json();
                 
-                // Proses data JSON yang diterima dari API Anda
                 students = data.map(student => ({
                     ...student,
                     thesisStatus: student.sidang?.toString().toUpperCase() === 'TRUE' ? 'completed' : 'pending',
@@ -229,12 +226,12 @@
                 initializeDashboard();
 
             } catch (error) {
-                console.error('Error fetching data via Apps Script:', error);
-                studentTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-600">Gagal memuat data. Pastikan URL Web App sudah benar dan di-deploy dengan benar.</td></tr>`;
+                console.error('Error fetching data:', error);
+                studentTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-600">Failed to load data. Please check the Web App URL and ensure it's deployed correctly.</td></tr>`;
             }
         }
 
-        // Inisialisasi Dashboard
+        // Initialize Dashboard
         function initializeDashboard() {
             if (students.length === 0) return;
             
@@ -250,7 +247,7 @@
             saveEditBtn.addEventListener('click', saveChanges);
         }
 
-        // Update statistik di kartu dashboard
+        // Update dashboard statistics
         function updateDashboardStats() {
             const total = students.length;
             const thesisDone = students.filter(s => s.thesisStatus === 'completed').length;
@@ -266,7 +263,7 @@
             document.getElementById('completion-bar').style.width = `${progress}%`;
         }
 
-        // Render tabel mahasiswa
+        // Render student table
         function renderStudentTable(data) {
             studentTableBody.innerHTML = '';
             if (data.length === 0) {
@@ -277,12 +274,9 @@
             const processedData = [];
             for (let i = 0; i < data.length; i++) {
                 const student = data[i];
-                // === PERUBAHAN DI SINI ===
-                // Sekarang, "ketua grup" adalah yang kelompoknya TIDAK SAMA DENGAN '-'
                 if (student.kelompok !== "") {
                     let groupSize = 1;
                     let j = i + 1;
-                    // Dan "anggota grup" adalah yang kelompoknya SAMA DENGAN '-'
                     while (j < data.length && data[j].kelompok === "") {
                         groupSize++;
                         j++;
@@ -293,16 +287,15 @@
                     }
                     i += groupSize - 1;
                 } else {
-                    // Jika baris pertama dimulai dengan '-', anggap sebagai grup tunggal
                     processedData.push({ ...student, rowspan: 1, isMerged: false });
                 }
             }
 
-            // Bagian rendering selanjutnya tidak ada perubahan logika
             processedData.forEach((student, index) => {
                 const row = document.createElement('tr');
                 const isLastInGroup = (index === processedData.length - 1) || !processedData[index + 1].isMerged;
                 if (isLastInGroup) row.className = 'border-b border-gray-200';
+                
                 const thesisStatusClass = student.thesisStatus === 'completed' ? 'status-completed' : 'status-pending';
                 const demoStatusClass = student.demoStatus === 'completed' ? 'status-completed' : 'status-pending';
 
@@ -313,33 +306,40 @@
                         <td class="px-6 py-4" rowspan="${student.rowspan}">${student.kelompok}</td>
                         <td class="px-6 py-4" rowspan="${student.rowspan}">${student.dosenpembimbing1}</td>
                         <td class="px-6 py-4" rowspan="${student.rowspan}">${student.dosenpembimbing2}</td>
-                        <td class="px-6 py-4" rowspan="${student.rowspan}"> <span class="status-badge ${thesisStatusClass}">
-                            ${student.thesisStatus === 'completed' ? 'Completed' : 'Pending'}
-                        </span></td>
-                        <td class="px-6 py-4" rowspan="${student.rowspan}"><span class="status-badge ${demoStatusClass}">
-                            ${student.demoStatus === 'completed' ? 'Completed' : 'Pending'}
-                        </span></td>
+                        <td class="px-6 py-4" rowspan="${student.rowspan}">
+                            <span class="status-badge ${thesisStatusClass}">
+                                ${student.thesisStatus === 'completed' ? 'Completed' : 'Pending'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4" rowspan="${student.rowspan}">
+                            <span class="status-badge ${demoStatusClass}">
+                                ${student.demoStatus === 'completed' ? 'Completed' : 'Pending'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4" rowspan="${student.rowspan}">
+                            <button class="edit-btn" data-id="${student.id}">Edit</button>
+                        </td>
                     `;
-                    
                 }
 
                 row.innerHTML = `
-                    <td>${student.nim}</td>
-                    <td class="font-medium">${student.nama}</td>
+                    <td class="px-6 py-4">${student.nim}</td>
+                    <td class="px-6 py-4 font-medium">${student.nama}</td>
                     ${sharedHtml}
                 `;
                 studentTableBody.appendChild(row);
             });
             
+            // Add event listeners to edit buttons
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.addEventListener('click', () => openEditModal(parseInt(btn.dataset.id)));
             });
         }
         
-        // Inisialisasi filter grup
+        // Initialize group filter
         function initializeGroupFilter() {
             const groupFilter = document.getElementById('group-filter');
-            const groups = [...new Set(students.filter(s => s.kelompok).map(s => s.kelompok))].sort((a,b) => a-b);
+            const groups = [...new Set(students.filter(s => s.kelompok && s.kelompok !== "").map(s => s.kelompok))].sort((a,b) => a-b);
             groupFilter.innerHTML = '<option value="">All Groups</option>';
             groups.forEach(g => groupFilter.innerHTML += `<option value="${g}">Group ${g}</option>`);
             groupFilter.addEventListener('change', filterStudents);
@@ -349,7 +349,7 @@
             });
         }
         
-        // Filter data mahasiswa
+        // Filter students
         function filterStudents() {
             const search = searchInput.value.toLowerCase();
             const filter = filterSelect.value;
@@ -372,85 +372,102 @@
             renderStudentTable(filtered);
         }
 
-        // Buka modal edit
+        // Open edit modal
         function openEditModal(studentId) {
             const student = students.find(s => s.id === studentId);
             if (!student) return;
+            
             currentStudentId = studentId;
             document.getElementById('modal-student-name').textContent = student.nama;
             document.getElementById('modal-student-nim').textContent = student.nim;
             document.getElementById('modal-student-group').textContent = student.kelompok || '(anggota)';
             document.getElementById('modal-student-internship').textContent = student.tempatmagang;
+            
             document.querySelectorAll('input[name="thesis-status"]').forEach(r => r.checked = r.value === student.thesisStatus);
             document.querySelectorAll('input[name="demo-status"]').forEach(r => r.checked = r.value === student.demoStatus);
+            
             editModal.classList.remove('hidden');
         }
 
-        // Tutup modal
+        // Close modal
         function closeModal() {
             editModal.classList.add('hidden');
             currentStudentId = null;
         }
 
-        // Simpan perubahan dari modal ke Google Sheet via Apps Script
+        // Save changes
         async function saveChanges() {
             if (currentStudentId === null) return;
 
             const thesisStatusValue = document.querySelector('input[name="thesis-status"]:checked').value;
             const demoStatusValue = document.querySelector('input[name="demo-status"]:checked').value;
 
-            // --- Logika untuk menemukan semua anggota kelompok (tidak berubah) ---
-            const clickedIdx = students.findIndex(s => s.id === currentStudentId);
-            if (clickedIdx === -1) return;
+            // Show loading overlay
+            loadingOverlay.classList.remove('hidden');
 
-            let leaderIdx = clickedIdx;
-            if (students[leaderIdx].kelompok === '-') {
-                while(leaderIdx > 0 && students[leaderIdx].kelompok === '-') leaderIdx--;
-            }
-            
-            // --- Logika BARU untuk mengirim update ---
-            const updatePromises = [];
-            let memberIdx = leaderIdx;
-
-            while(memberIdx < students.length) {
-                const studentToUpdate = students[memberIdx];
-                
-                const payload = {
-                    nim: studentToUpdate.nim,
-                    sidang: thesisStatusValue === 'completed' ? 'TRUE' : 'FALSE',
-                    demopl: demoStatusValue === 'completed' ? 'TRUE' : 'FALSE'
-                };
-
-                // Kirim data menggunakan metode POST
-                // mode: 'no-cors' DIHAPUS agar bisa melihat respons server
-                const updatePromise = fetch(webAppUrl, {
-                    method: 'POST',
-                    // Hapus baris 'mode: "no-cors",'
-                    headers: {
-                        "Content-Type": "text/plain;charset=utf-8", // Gunakan text/plain untuk menghindari preflight
-                    },
-                    body: JSON.stringify(payload),
-                });
-
-                updatePromises.push(updatePromise);
-
-                if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok !== '-') {
-                    break;
-                }
-                memberIdx++;
-            }
-            
-            // Tunggu semua proses update selesai dan muat ulang data
             try {
+                // Find all students in the group that need to be updated
+                const clickedIdx = students.findIndex(s => s.id === currentStudentId);
+                if (clickedIdx === -1) return;
+
+                let leaderIdx = clickedIdx;
+                if (students[leaderIdx].kelompok === "") {
+                    while(leaderIdx > 0 && students[leaderIdx].kelompok === "") leaderIdx--;
+                }
+                
+                const updatePromises = [];
+                let memberIdx = leaderIdx;
+
+                while(memberIdx < students.length) {
+                    const studentToUpdate = students[memberIdx];
+                    
+                    const payload = {
+                        action: "update",
+                        nim: studentToUpdate.nim,
+                        sidang: thesisStatusValue === 'completed',
+                        demopl: demoStatusValue === 'completed'
+                    };
+
+                    const updatePromise = fetch(webAppUrl, {
+                        method: 'POST',
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    updatePromises.push(updatePromise);
+
+                    if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok !== "") {
+                        break;
+                    }
+                    memberIdx++;
+                }
+                
+                // Wait for all updates to complete
                 const responses = await Promise.all(updatePromises);
-                console.log("Server responses:", responses);
-                fetchData(); // Muat ulang data dari sheet untuk memastikan sinkron
+                
+                // Check if all requests were successful
+                const results = await Promise.all(responses.map(r => r.json()));
+                const allSuccessful = results.every(result => result.success);
+                
+                if (allSuccessful) {
+                    // Refresh data from server
+                    await fetchData();
+                    closeModal();
+                    
+                    // Show success message
+                    showNotification('Data berhasil diupdate!', 'success');
+                } else {
+                    throw new Error('Some updates failed');
+                }
+                
             } catch (error) {
-                console.error("Gagal mengirim update ke server:", error);
-                alert("Gagal menyimpan perubahan ke server. Silakan cek console untuk detail.");
+                console.error("Failed to update data:", error);
+                showNotification('Gagal mengupdate data. Silakan coba lagi.', 'error');
+            } finally {
+                loadingOverlay.classList.add('hidden');
             }
-            
-            closeModal();
         }
         // Update waktu terakhir
         function updateLastUpdated() {
