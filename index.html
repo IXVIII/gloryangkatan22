@@ -138,7 +138,7 @@
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Dospem 2</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Sidang</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Demo PL</th>
-                                <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Actions</th>
+<!--                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Actions</th> -->
                             </tr>
                         </thead>
                         <tbody id="student-table-body">
@@ -214,11 +214,12 @@
         // Ganti seluruh fungsi fetchData Anda dengan ini
         async function fetchData() {
             try {
-                const response = await fetch(webAppUrl);
+                const response = await fetch(webAppUrl); // Memanggil API Anda
                 if (!response.ok) throw new Error('Gagal menghubungi API Apps Script');
                 
                 const data = await response.json();
                 
+                // Proses data JSON yang diterima dari API Anda
                 students = data.map(student => ({
                     ...student,
                     thesisStatus: student.sidang?.toString().toUpperCase() === 'TRUE' ? 'completed' : 'pending',
@@ -249,6 +250,7 @@
             saveEditBtn.addEventListener('click', saveChanges);
         }
 
+        // Update statistik di kartu dashboard
         function updateDashboardStats() {
             const total = students.length;
             const thesisDone = students.filter(s => s.thesisStatus === 'completed').length;
@@ -275,9 +277,12 @@
             const processedData = [];
             for (let i = 0; i < data.length; i++) {
                 const student = data[i];
+                // === PERUBAHAN DI SINI ===
+                // Sekarang, "ketua grup" adalah yang kelompoknya TIDAK SAMA DENGAN '-'
                 if (student.kelompok !== "") {
                     let groupSize = 1;
                     let j = i + 1;
+                    // Dan "anggota grup" adalah yang kelompoknya SAMA DENGAN '-'
                     while (j < data.length && data[j].kelompok === "") {
                         groupSize++;
                         j++;
@@ -288,10 +293,12 @@
                     }
                     i += groupSize - 1;
                 } else {
+                    // Jika baris pertama dimulai dengan '-', anggap sebagai grup tunggal
                     processedData.push({ ...student, rowspan: 1, isMerged: false });
                 }
             }
 
+            // Bagian rendering selanjutnya tidak ada perubahan logika
             processedData.forEach((student, index) => {
                 const row = document.createElement('tr');
                 const isLastInGroup = (index === processedData.length - 1) || !processedData[index + 1].isMerged;
@@ -312,11 +319,8 @@
                         <td class="px-6 py-4" rowspan="${student.rowspan}"><span class="status-badge ${demoStatusClass}">
                             ${student.demoStatus === 'completed' ? 'Completed' : 'Pending'}
                         </span></td>
-                        <td class="px-6 py-4" rowspan="${student.rowspan}">
-                            <button class="edit-btn px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" 
-                                    data-nim="${student.nim}">Edit</button>
-                        </td>
                     `;
+                    
                 }
 
                 row.innerHTML = `
@@ -328,10 +332,9 @@
             });
             
             document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', () => openEditModal(btn.dataset.nim));
+                btn.addEventListener('click', () => openEditModal(parseInt(btn.dataset.id)));
             });
         }
-
         
         // Inisialisasi filter grup
         function initializeGroupFilter() {
@@ -370,10 +373,10 @@
         }
 
         // Buka modal edit
-        function openEditModal(studentNim) {
-            const student = students.find(s => s.nim === studentNim);
+        function openEditModal(studentId) {
+            const student = students.find(s => s.id === studentId);
             if (!student) return;
-            currentStudentNim = studentNim;
+            currentStudentId = studentId;
             document.getElementById('modal-student-name').textContent = student.nama;
             document.getElementById('modal-student-nim').textContent = student.nim;
             document.getElementById('modal-student-group').textContent = student.kelompok || '(anggota)';
@@ -386,45 +389,68 @@
         // Tutup modal
         function closeModal() {
             editModal.classList.add('hidden');
-            currentStudentNim = null;
+            currentStudentId = null;
         }
 
         // Simpan perubahan dari modal ke Google Sheet via Apps Script
         async function saveChanges() {
-            if (!currentStudentNim) return;
+            if (currentStudentId === null) return;
 
             const thesisStatusValue = document.querySelector('input[name="thesis-status"]:checked').value;
             const demoStatusValue = document.querySelector('input[name="demo-status"]:checked').value;
 
-            const payload = {
-                action: "update",
-                nim: currentStudentNim,
-                sidang: thesisStatusValue === 'completed',
-                demopl: demoStatusValue === 'completed'
-            };
+            // --- Logika untuk menemukan semua anggota kelompok (tidak berubah) ---
+            const clickedIdx = students.findIndex(s => s.id === currentStudentId);
+            if (clickedIdx === -1) return;
 
-            try {
-                const response = await fetch(webAppUrl, {
+            let leaderIdx = clickedIdx;
+            if (students[leaderIdx].kelompok === '-') {
+                while(leaderIdx > 0 && students[leaderIdx].kelompok === '-') leaderIdx--;
+            }
+            
+            // --- Logika BARU untuk mengirim update ---
+            const updatePromises = [];
+            let memberIdx = leaderIdx;
+
+            while(memberIdx < students.length) {
+                const studentToUpdate = students[memberIdx];
+                
+                const payload = {
+                    nim: studentToUpdate.nim,
+                    sidang: thesisStatusValue === 'completed' ? 'TRUE' : 'FALSE',
+                    demopl: demoStatusValue === 'completed' ? 'TRUE' : 'FALSE'
+                };
+
+                // Kirim data menggunakan metode POST
+                // mode: 'no-cors' DIHAPUS agar bisa melihat respons server
+                const updatePromise = fetch(webAppUrl, {
                     method: 'POST',
+                    // Hapus baris 'mode: "no-cors",'
                     headers: {
-                        'Content-Type': 'application/json',
+                        "Content-Type": "text/plain;charset=utf-8", // Gunakan text/plain untuk menghindari preflight
                     },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(payload),
                 });
 
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert("Data berhasil diupdate!");
-                    fetchData(); // Refresh data
-                    closeModal();
-                } else {
-                    throw new Error(result.message || "Gagal mengupdate data");
+                updatePromises.push(updatePromise);
+
+                if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok !== '-') {
+                    break;
                 }
-            } catch (error) {
-                console.error("Error:", error);
-                alert("Gagal mengupdate data: " + error.message);
+                memberIdx++;
             }
+            
+            // Tunggu semua proses update selesai dan muat ulang data
+            try {
+                const responses = await Promise.all(updatePromises);
+                console.log("Server responses:", responses);
+                fetchData(); // Muat ulang data dari sheet untuk memastikan sinkron
+            } catch (error) {
+                console.error("Gagal mengirim update ke server:", error);
+                alert("Gagal menyimpan perubahan ke server. Silakan cek console untuk detail.");
+            }
+            
+            closeModal();
         }
         // Update waktu terakhir
         function updateLastUpdated() {
