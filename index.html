@@ -536,8 +536,8 @@
         document.getElementById('download-pdf').addEventListener('click', () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const logoImg = document.getElementById("logo-source");
-            const logoBase64 = getBase64Image(logoImg);
+            //const logoImg = document.getElementById("logo-source");
+            //const logoBase64 = getBase64Image(logoImg);
         
             // Tambahkan logo ke PDF
             doc.addImage(logoBase64, 'PNG', 14, 10, 65, 20); // x, y, width, height
@@ -616,7 +616,7 @@
                 didDrawPage: function (data) {
                     // Footer
                     const footerImg = document.getElementById("footer-img");
-                    const footerBase64 = getBase64Image(footerImg);
+                    const footerBase64 = getBase64ImageFooter(footerImg);
                     const pageWidth = doc.internal.pageSize.getWidth();
                     const pageHeight = doc.internal.pageSize.getHeight();
                     const footerHeight = 21;
