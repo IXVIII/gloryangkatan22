@@ -609,16 +609,16 @@
                             data.cell.styles.fillColor = [254, 226, 225]; // merah muda
                         }
                     }
+                },
+                didDrawPage: function (data) {
+                    const footerImg = document.getElementById("footer-img");
+                    const footerBase64 = getBase64Image(footerImg);
+                    const pageHeight = doc.internal.pageSize.getHeight();
+            
+                    doc.addImage(footerBase64, 'JPEG', 14, pageHeight - 30, 180, 20); 
                 }
             });
-            const footerImg = document.getElementById("footer-img");
-            const footerBase64 = getBase64ImageFooter(footerImg);
-            
-            // Ambil tinggi halaman
-            const pageHeight = doc.internal.pageSize.getHeight();
-            
-            // Tambahkan gambar footer di bagian bawah halaman
-            doc.addImage(footerBase64, 'JPEG', 14, pageHeight - 30, 180, 20);
+           
             doc.save('Student_Progress.pdf');
         });
 
