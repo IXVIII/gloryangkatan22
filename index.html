@@ -544,6 +544,17 @@
             doc.setFont("poppins", "bold");
             doc.text("Data Progress Mahasiswa", 14, 14);
             doc.setFont("poppins", "normal");
+            // Tambahkan legend
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text("Keterangan:", 14, 20);
+            doc.setFillColor(220, 252, 231); // hijau muda
+            doc.rect(40, 17, 5, 5, 'F');
+            doc.text("= Lulus", 47, 21);
+            doc.setFillColor(254, 226, 225); // merah muda
+            doc.rect(70, 17, 5, 5, 'F');
+            doc.text("= Pending", 77, 21);
+            
             doc.autoTable({
                 head: [['NIM', 'Nama', 'Tempat Magang', 'Kelompok', 'Dospem 1', 'Dospem 2', 'Sidang', 'Demo PL']],
                 body: tableData,
@@ -554,10 +565,14 @@
                     lineColor: [0, 0, 0],     // warna hitam
                 },
                 headStyles: {
+                    halign: 'center',
                     fillColor: [30, 64, 175],
                     textColor: [255, 255, 255],
                     lineWidth: 0.5,           // lebih tebal di header (opsional)
                     lineColor: [0, 0, 0]
+                },
+                columnStyles: {
+                    3: { halign: 'center' },   // kolom "Kelompok"
                 },
                 didParseCell: function (data) {
                     if (data.section === 'body') {
