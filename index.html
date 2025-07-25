@@ -634,28 +634,40 @@
                     doc.text("Manajemen Informatika", pageWidth - 14, 22, { align: 'right' });
                     
                     // Tambahkan legend (warna dan keterangan)
-                    const legendX = pageWidth - 14; // Sama seperti teks judul
-                    let legendY = 30; // Mulai di bawah judul
+                    const legendBaseX = pageWidth - 14;
+                    const legendY = 30; // Di bawah judul
+                    
+                    // Ukuran teks
+                    const lulusText = 'Lulus';
+                    const pendingText = 'Pending';
+                    const lulusWidth = doc.getTextWidth(lulusText);
+                    const pendingWidth = doc.getTextWidth(pendingText);
+                    
+                    // Total lebar satu legend (kotak + spasi + teks)
+                    const lulusBlockWidth = 5 + 2 + lulusWidth + 10; // termasuk jarak antar legend
+                    const pendingBlockWidth = 5 + 2 + pendingWidth;
+                    
+                    // Hitung X awal untuk pending agar pas rata kanan
+                    const pendingRectX = legendBaseX - pendingBlockWidth;
+                    const pendingTextX = pendingRectX + 5 + 2;
+                    
+                    // Hitung X awal untuk lulus (di kiri pending)
+                    const lulusRectX = pendingRectX - lulusBlockWidth;
+                    const lulusTextX = lulusRectX + 5 + 2;
                     
                     doc.setFontSize(8);
                     doc.setFont('barlow', 'normal');
-                    doc.setTextColor(0, 0, 0); // hitam
+                    doc.setTextColor(0, 0, 0);
                     
-                    // Lulus (Hijau Muda)
-                    const lulusText = 'Lulus';
-                    const lulusWidth = doc.getTextWidth(lulusText);
-                    doc.setFillColor(220, 252, 231);
-                    doc.rect(legendX - (5 + 2 + lulusWidth), legendY - 4, 5, 5, 'F'); // kotak
-                    doc.text(lulusText, legendX - lulusWidth, legendY); // teks rata kanan kotak
+                    // Kotak + teks "Lulus"
+                    doc.setFillColor(220, 252, 231); // hijau muda
+                    doc.rect(lulusRectX, legendY - 4, 5, 5, 'F');
+                    doc.text(lulusText, lulusTextX, legendY);
                     
-                    legendY += 7; // pindah baris
-                    
-                    // Pending (Merah Muda)
-                    const pendingText = 'Pending';
-                    const pendingWidth = doc.getTextWidth(pendingText);
-                    doc.setFillColor(254, 226, 225);
-                    doc.rect(legendX - (5 + 2 + pendingWidth), legendY - 4, 5, 5, 'F');
-                    doc.text(pendingText, legendX - pendingWidth, legendY);
+                    // Kotak + teks "Pending"
+                    doc.setFillColor(254, 226, 225); // merah muda
+                    doc.rect(pendingRectX, legendY - 4, 5, 5, 'F');
+                    doc.text(pendingText, pendingTextX, legendY);
                 }
             });
            
