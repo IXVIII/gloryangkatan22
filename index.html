@@ -541,18 +541,18 @@
                 student.thesisStatus === 'completed' ? 'Completed' : 'Pending',
                 student.demoStatus === 'completed' ? 'Completed' : 'Pending'
             ]);
-            doc.setFont("barlow", "bold");
-            doc.text("Data Progress Mahasiswa Manajemen Informatika", 14, 14);
+            //doc.setFont("barlow", "bold");
+            //doc.text("Data Progress Mahasiswa Manajemen Informatika", 14, 14);
             doc.setFont("barlow", "normal");
             // Tambahkan legend
             doc.setFontSize(10);
             doc.setTextColor(0, 0, 0);
-            doc.setFillColor(220, 252, 231); // hijau muda
-            doc.rect(14, 17, 5, 5, 'F');
-            doc.text("= Lulus", 22, 21);
-            doc.setFillColor(254, 226, 225); // merah muda
-            doc.rect(44, 17, 5, 5, 'F');
-            doc.text("= Pending", 52, 21);
+            //doc.setFillColor(220, 252, 231); // hijau muda
+            //doc.rect(14, 17, 5, 5, 'F');
+            //doc.text("= Lulus", 22, 21);
+            //doc.setFillColor(254, 226, 225); // merah muda
+            //doc.rect(44, 17, 5, 5, 'F');
+            //doc.text("= Pending", 52, 21);
             
             doc.autoTable({
                 head: [['NIM', 'Nama', 'Tempat Magang', 'Kelompok', 'Dospem 1', 'Dospem 2', 'Sidang', 'Demo PL']],
