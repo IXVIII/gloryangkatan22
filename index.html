@@ -584,7 +584,7 @@
                 head: [['NIM', 'Nama', 'Tempat Magang', 'Kelompok', 'Dospem 1', 'Dospem 2', 'Sidang', 'Demo PL']],
                 body: tableData,
                 startY: 33,
-                margin: { top: 40, bottom: 40 },
+                margin: { top: 33, bottom: 40 },
                 styles: {
                     fontSize: 8,
                     lineWidth: 0.2,           // ketebalan garis border
@@ -614,6 +614,23 @@
                     }
                 },
                 didDrawPage: function (data) {
+                    doc.setFontSize(12);
+                    doc.setFont('barlow', 'bold');
+                    doc.text("Data Progress TA Mahasiswa\nManajemen Informatika", pageWidth - 155, 16, { align: 'left' });
+                    
+                    // Tambahkan legend (warna dan keterangan)
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'normal');
+                    
+                    // Kotak hijau muda (Lulus)
+                    doc.setFillColor(220, 252, 231); // warna hijau muda
+                    doc.rect(14, 32, 5, 5, 'F');
+                    doc.text('Lulus', 21, 36);
+                    
+                    // Kotak merah muda (Pending)
+                    doc.setFillColor(254, 226, 225); // warna merah muda
+                    doc.rect(45, 32, 5, 5, 'F');
+                    doc.text('Pending', 52, 36);
                     // Footer
                     const footerImg = document.getElementById("footer-img");
                     const footerBase64 = getBase64ImageFooter(footerImg);
