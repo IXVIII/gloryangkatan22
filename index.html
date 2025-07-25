@@ -629,23 +629,33 @@
                     doc.addImage(logoBase64, 'PNG', 14, 10, 65, 20);
 
                     doc.setFontSize(12);
-                    //doc.setFont('barlow', 'bold');
+                    doc.setFont('barlow', 'bold');
                     doc.text("Data Progress TA Mahasiswa", pageWidth - 14, 16, { align: 'right' });
                     doc.text("Manajemen Informatika", pageWidth - 14, 22, { align: 'right' });
                     
                     // Tambahkan legend (warna dan keterangan)
-                    doc.setFontSize(8);
-                    //doc.setFont('barlow', 'normal');
-                    doc.setTextColor(0, 0, 0); // Hitam
-                    // Kotak hijau muda (Lulus)
-                    doc.setFillColor(220, 252, 231); // warna hijau muda
-                    doc.rect(14, 32, 5, 5, 'F');
-                    doc.text('Lulus', 21, 36);
+                    const legendX = pageWidth - 14; // Sama seperti teks judul
+                    let legendY = 30; // Mulai di bawah judul
                     
-                    // Kotak merah muda (Pending)
-                    doc.setFillColor(254, 226, 225); // warna merah muda
-                    doc.rect(45, 32, 5, 5, 'F');
-                    doc.text('Pending', 52, 36);
+                    doc.setFontSize(8);
+                    doc.setFont('barlow', 'normal');
+                    doc.setTextColor(0, 0, 0); // hitam
+                    
+                    // Lulus (Hijau Muda)
+                    const lulusText = 'Lulus';
+                    const lulusWidth = doc.getTextWidth(lulusText);
+                    doc.setFillColor(220, 252, 231);
+                    doc.rect(legendX - (5 + 2 + lulusWidth), legendY - 4, 5, 5, 'F'); // kotak
+                    doc.text(lulusText, legendX - lulusWidth, legendY); // teks rata kanan kotak
+                    
+                    legendY += 7; // pindah baris
+                    
+                    // Pending (Merah Muda)
+                    const pendingText = 'Pending';
+                    const pendingWidth = doc.getTextWidth(pendingText);
+                    doc.setFillColor(254, 226, 225);
+                    doc.rect(legendX - (5 + 2 + pendingWidth), legendY - 4, 5, 5, 'F');
+                    doc.text(pendingText, legendX - pendingWidth, legendY);
                 }
             });
            
