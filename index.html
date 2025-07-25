@@ -547,18 +547,17 @@
             // Tambahkan legend
             doc.setFontSize(10);
             doc.setTextColor(0, 0, 0);
-            doc.text("Keterangan:", 14, 20);
             doc.setFillColor(220, 252, 231); // hijau muda
-            doc.rect(40, 17, 5, 5, 'F');
-            doc.text("= Lulus", 47, 21);
+            doc.rect(14, 17, 5, 5, 'F');
+            doc.text("= Lulus", 22, 21);
             doc.setFillColor(254, 226, 225); // merah muda
-            doc.rect(70, 17, 5, 5, 'F');
-            doc.text("= Pending", 77, 21);
+            doc.rect(44, 17, 5, 5, 'F');
+            doc.text("= Pending", 52, 21);
             
             doc.autoTable({
                 head: [['NIM', 'Nama', 'Tempat Magang', 'Kelompok', 'Dospem 1', 'Dospem 2', 'Sidang', 'Demo PL']],
                 body: tableData,
-                startY: 30,
+                startY: 27,
                 styles: {
                     fontSize: 8,
                     lineWidth: 0.2,           // ketebalan garis border
