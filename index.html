@@ -614,9 +614,12 @@
                 didDrawPage: function (data) {
                     const footerImg = document.getElementById("footer-img");
                     const footerBase64 = getBase64Image(footerImg);
+                    
+                    const pageWidth = doc.internal.pageSize.getWidth();
                     const pageHeight = doc.internal.pageSize.getHeight();
-            
-                    doc.addImage(footerBase64, 'JPEG', 14, pageHeight - 30, 180, 20); 
+                    const footerHeight = 25; // Sesuaikan kalau ingin lebih tinggi
+                
+                    doc.addImage(footerBase64, 'JPEG', 0, pageHeight - footerHeight, pageWidth, footerHeight);
                 }
             });
            
