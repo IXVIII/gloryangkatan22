@@ -549,19 +549,22 @@
                 body: tableData,
                 startY: 20,
                 styles: {
-                    fontSize: 8
+                    fontSize: 8,
+                    lineWidth: 0.2,           // ketebalan garis border
+                    lineColor: [0, 0, 0],     // warna hitam
                 },
                 headStyles: {
-                    fillColor: [30, 64, 175], // biru tua untuk header
-                    textColor: [255, 255, 255] // putih
+                    fillColor: [30, 64, 175],
+                    textColor: [255, 255, 255],
+                    lineWidth: 0.5,           // lebih tebal di header (opsional)
+                    lineColor: [0, 0, 0]
                 },
                 didParseCell: function (data) {
                     if (data.section === 'body') {
                         const rowIndex = data.row.index;
                         const sidangValue = tableData[rowIndex][6];
                         const demoValue = tableData[rowIndex][7];
-                
-                        // Jika status Sidang = "Completed", warnai seluruh barisnya hijau muda
+            
                         if (sidangValue === 'Completed') {
                             data.cell.styles.fillColor = [220, 252, 231]; // hijau muda
                         } else if (sidangValue === 'Pending' && demoValue === 'Pending') {
