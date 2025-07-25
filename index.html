@@ -614,6 +614,20 @@
                     }
                 },
                 didDrawPage: function (data) {
+                    
+                    // Footer
+                    const footerImg = document.getElementById("footer-img");
+                    const footerBase64 = getBase64ImageFooter(footerImg);
+                    const pageWidth = doc.internal.pageSize.getWidth();
+                    const pageHeight = doc.internal.pageSize.getHeight();
+                    const footerHeight = 21;
+                    doc.addImage(footerBase64, 'JPEG', 0, pageHeight - footerHeight, pageWidth, footerHeight);
+                
+                    // Logo Header (ulang setiap halaman)
+                    const logoImg = document.getElementById("logo-source");
+                    const logoBase64 = getBase64Image(logoImg);
+                    doc.addImage(logoBase64, 'PNG', 14, 10, 65, 20);
+
                     doc.setFontSize(12);
                     doc.setFont('barlow', 'bold');
                     doc.text("Data Progress TA Mahasiswa\nManajemen Informatika", pageWidth - 155, 16, { align: 'left' });
@@ -631,18 +645,6 @@
                     doc.setFillColor(254, 226, 225); // warna merah muda
                     doc.rect(45, 32, 5, 5, 'F');
                     doc.text('Pending', 52, 36);
-                    // Footer
-                    const footerImg = document.getElementById("footer-img");
-                    const footerBase64 = getBase64ImageFooter(footerImg);
-                    const pageWidth = doc.internal.pageSize.getWidth();
-                    const pageHeight = doc.internal.pageSize.getHeight();
-                    const footerHeight = 21;
-                    doc.addImage(footerBase64, 'JPEG', 0, pageHeight - footerHeight, pageWidth, footerHeight);
-                
-                    // Logo Header (ulang setiap halaman)
-                    const logoImg = document.getElementById("logo-source");
-                    const logoBase64 = getBase64Image(logoImg);
-                    doc.addImage(logoBase64, 'PNG', 14, 10, 65, 20);
                 }
             });
            
