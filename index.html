@@ -81,6 +81,7 @@
                 <h1 class="text-3xl font-bold">MI 22, Bismillah LULUS</h1>
                 <p class="mt-2 text-blue-200">Live monitoring PKTA - Sidang TA / Demo PL</p>
                 <img id="logo-source" src="logoastratech.png" hidden>
+                <img id="footer-img" src="tst.jpeg" style="display:none;" />
             </div>
             <div class="text-right">
                 <h3 class="text-blue-200 text-sm font-medium">Last Updated</h3>
@@ -292,6 +293,14 @@
             const ctx = canvas.getContext("2d");
             ctx.drawImage(imgElement, 0, 0);
         
+            return canvas.toDataURL("image/png");
+        }
+        function getBase64ImageFooter(img) {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
             return canvas.toDataURL("image/png");
         }
         // Update dashboard statistics
@@ -602,7 +611,14 @@
                     }
                 }
             });
-        
+            const footerImg = document.getElementById("footer-img");
+            const footerBase64 = getBase64ImageFooter(footerImg);
+            
+            // Ambil tinggi halaman
+            const pageHeight = doc.internal.pageSize.getHeight();
+            
+            // Tambahkan gambar footer di bagian bawah halaman
+            doc.addImage(footerBase64, 'JPEG', 14, pageHeight - 30, 180, 20);
             doc.save('Student_Progress.pdf');
         });
 
