@@ -540,7 +540,7 @@
             //const logoBase64 = getBase64Image(logoImg);
         
             // Tambahkan logo ke PDF
-            doc.addImage(logoBase64, 'PNG', 14, 10, 65, 20); // x, y, width, height
+            //doc.addImage(logoBase64, 'PNG', 14, 10, 65, 20); // x, y, width, height
             const filteredData = students.filter(s => {
                 const search = searchInput.value.toLowerCase();
                 const searchMatch = !search || Object.values(s).some(v => String(v).toLowerCase().includes(search));
