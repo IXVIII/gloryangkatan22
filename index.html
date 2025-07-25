@@ -630,12 +630,13 @@
 
                     doc.setFontSize(12);
                     //doc.setFont('barlow', 'bold');
-                    doc.text("Data Progress TA Mahasiswa\nManajemen Informatika", pageWidth - 155, 16, { align: 'right' });
+                    doc.text("Data Progress TA Mahasiswa", pageWidth - 14, 16, { align: 'right' });
+                    doc.text("Manajemen Informatika", pageWidth - 14, 22, { align: 'right' });
                     
                     // Tambahkan legend (warna dan keterangan)
                     doc.setFontSize(8);
                     //doc.setFont('barlow', 'normal');
-                    
+                    doc.setTextColor(0, 0, 0); // Hitam
                     // Kotak hijau muda (Lulus)
                     doc.setFillColor(220, 252, 231); // warna hijau muda
                     doc.rect(14, 32, 5, 5, 'F');
