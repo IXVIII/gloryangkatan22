@@ -82,10 +82,6 @@
             <div>
                 <h1 class="text-3xl font-bold">MI 22, Bismillah LULUS</h1>
                 <p class="mt-2 text-blue-200">Live monitoring PKTA - Sidang TA / Demo PL</p>
-                <p id="dataP" class="mt-2 text-blue-200" hidden>Data Progress TA Mahasiswa</p>
-                <p id="prodiP" class="mt-2 text-blue-200" hidden>Manajemen Informatika</p>
-                <p id="lulusP" class="mt-2 text-blue-200" hidden>Lulus</p>
-                <p id="pendingP" class="mt-2 text-blue-200" hidden>Pending</p>
                 <img id="logo-source" src="logoastratech.png" hidden>
                 <img id="footer-img" src="tst.jpeg" style="display:none;" />
             </div>
@@ -618,10 +614,6 @@
                     }
                 },
                 didDrawPage: function (data) {
-                    const lulusp = document.getElementById("lulusP");
-                    const pendingp = document.getElementById("pendingP");
-                    const datap = document.getElementById("dataP");
-                    const prodip = document.getElementById("prodiP");
                     // Footer
                     const footerImg = document.getElementById("footer-img");
                     const footerBase64 = getBase64ImageFooter(footerImg);
@@ -637,8 +629,8 @@
 
                     doc.setFontSize(12);
                     doc.setFont('Barlow', 'bold');
-                    doc.text(datap, pageWidth - 14, 16, { align: 'right' });
-                    doc.text(prodip, pageWidth - 14, 22, { align: 'right' });
+                    doc.text("Data Progress TA Mahasiswa", pageWidth - 14, 16, { align: 'right' });
+                    doc.text("Manajemen Informatika", pageWidth - 14, 22, { align: 'right' });
                     
                     // Tambahkan legend (warna dan keterangan)
                     const legendBaseX = pageWidth - 14;
@@ -669,12 +661,12 @@
                     // Kotak + teks "Lulus"
                     doc.setFillColor(220, 252, 231); // hijau muda
                     doc.rect(lulusRectX, legendY - 4, 5, 5, 'F');
-                    doc.text(lulusp, lulusTextX, legendY);
+                    doc.text("Lulus", lulusTextX, legendY);
                     
                     // Kotak + teks "Pending"
                     doc.setFillColor(254, 226, 225); // merah muda
                     doc.rect(pendingRectX, legendY - 4, 5, 5, 'F');
-                    doc.text(pendingp, pendingTextX, legendY);
+                    doc.text("Pending", pendingTextX, legendY);
                 }
             });
            
