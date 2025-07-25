@@ -80,6 +80,7 @@
             <div>
                 <h1 class="text-3xl font-bold">MI 22, Bismillah LULUS</h1>
                 <p class="mt-2 text-blue-200">Live monitoring PKTA - Sidang TA / Demo PL</p>
+                <img id="logo-source" src="logoastratech.png" hidden>
             </div>
             <div class="text-right">
                 <h3 class="text-blue-200 text-sm font-medium">Last Updated</h3>
@@ -283,6 +284,16 @@
             saveEditBtn.addEventListener('click', saveChanges);
         }
 
+        function getBase64Image(imgElement) {
+            const canvas = document.createElement("canvas");
+            canvas.width = imgElement.width;
+            canvas.height = imgElement.height;
+        
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(imgElement, 0, 0);
+        
+            return canvas.toDataURL("image/png");
+        }
         // Update dashboard statistics
         function updateDashboardStats() {
             const total = students.length;
@@ -514,7 +525,11 @@
         document.getElementById('download-pdf').addEventListener('click', () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
+            const logoImg = document.getElementById("logo-source");
+            const logoBase64 = getBase64Image(logoImg);
         
+            // Tambahkan logo ke PDF
+            doc.addImage(logoBase64, 'PNG', 14, 10, 30, 20); // x, y, width, height
             const filteredData = students.filter(s => {
                 const search = searchInput.value.toLowerCase();
                 const searchMatch = !search || Object.values(s).some(v => String(v).toLowerCase().includes(search));
