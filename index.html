@@ -556,17 +556,17 @@
                     textColor: [255, 255, 255] // putih
                 },
                 didParseCell: function (data) {
-                    const rowIndex = data.row.index;
-                    const columnIndex = data.column.index;
-            
-                    // Kolom ke-6 adalah status Sidang TA (indeks 6)
-                    const sidangValue = tableData[rowIndex][6];
-                    const demoValue = tableData[rowIndex][7];
-                    // Jika status Sidang = "Completed", warnai seluruh barisnya hijau muda
-                    if (sidangValue === 'Completed') {
-                        data.cell.styles.fillColor = [220, 252, 231]; // hijau muda (Tailwind: green-100)
-                    }else if ( sidangValue === 'Pending' && demoValue === 'Pending') {
-                        data.cell.styles.fillColor = [254, 226, 225];
+                    if (data.section === 'body') {
+                        const rowIndex = data.row.index;
+                        const sidangValue = tableData[rowIndex][6];
+                        const demoValue = tableData[rowIndex][7];
+                
+                        // Jika status Sidang = "Completed", warnai seluruh barisnya hijau muda
+                        if (sidangValue === 'Completed') {
+                            data.cell.styles.fillColor = [220, 252, 231]; // hijau muda
+                        } else if (sidangValue === 'Pending' && demoValue === 'Pending') {
+                            data.cell.styles.fillColor = [254, 226, 225]; // merah muda
+                        }
                     }
                 }
             });
