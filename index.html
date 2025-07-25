@@ -529,7 +529,7 @@
             const logoBase64 = getBase64Image(logoImg);
         
             // Tambahkan logo ke PDF
-            doc.addImage(logoBase64, 'PNG', 14, 10, 30, 20); // x, y, width, height
+            doc.addImage(logoBase64, 'PNG', 14, 10, 400, 100); // x, y, width, height
             const filteredData = students.filter(s => {
                 const search = searchInput.value.toLowerCase();
                 const searchMatch = !search || Object.values(s).some(v => String(v).toLowerCase().includes(search));
@@ -558,7 +558,7 @@
             ]);
             //doc.setFont("barlow", "bold");
             //doc.text("Data Progress Mahasiswa Manajemen Informatika", 14, 14);
-            doc.setFont("barlow", "normal");
+            doc.setFont("Barlow", "normal");
             // Tambahkan legend
             doc.setFontSize(10);
             doc.setTextColor(0, 0, 0);
