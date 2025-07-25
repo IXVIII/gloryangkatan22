@@ -8,10 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Barlow', sans-serif;
             background-color: #f0f4f8;
         }
         .dashboard-card {
@@ -612,14 +614,32 @@
                     }
                 },
                 didDrawPage: function (data) {
+                    // Footer
                     const footerImg = document.getElementById("footer-img");
                     const footerBase64 = getBase64Image(footerImg);
-                    
                     const pageWidth = doc.internal.pageSize.getWidth();
                     const pageHeight = doc.internal.pageSize.getHeight();
-                    const footerHeight = 21; // Sesuaikan kalau ingin lebih tinggi
-                
+                    const footerHeight = 21;
                     doc.addImage(footerBase64, 'JPEG', 0, pageHeight - footerHeight, pageWidth, footerHeight);
+                
+                    // Logo Header (ulang setiap halaman)
+                    const logoImg = document.getElementById("logo-source");
+                    const logoBase64 = getBase64Image(logoImg);
+                    doc.addImage(logoBase64, 'PNG', 14, 10, 65, 20);
+                
+                    // Judul dan Legend
+                    doc.setFont("Barlow", "normal");
+                    doc.setFontSize(10);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text("Data Progress Mahasiswa Manajemen Informatika", pageWidth / 2, 28, { align: "center" });
+                
+                    doc.setFillColor(220, 252, 231); // hijau
+                    doc.rect(14, 30, 5, 5, 'F');
+                    doc.text("= Lulus", 22, 34);
+                
+                    doc.setFillColor(254, 226, 225); // merah
+                    doc.rect(44, 30, 5, 5, 'F');
+                    doc.text("= Pending", 52, 34);
                 }
             });
            
