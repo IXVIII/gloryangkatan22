@@ -111,7 +111,7 @@
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="student-table-body">
+                        <tbody id="student-table-body-2">
                             <tr><td colspan="9" class="text-center py-5">Loading data...</td></tr>
                         </tbody>
                  </table>
@@ -251,6 +251,7 @@
 
         // DOM Elements
         const studentTableBody = document.getElementById('student-table-body');
+        const studentTableBody2 = document.getElementById('student-table-body-2');
         const searchInput = document.getElementById('search-input');
         const filterSelect = document.getElementById('filter-select');
         const editModal = document.getElementById('edit-modal');
@@ -278,6 +279,8 @@
             } catch (error) {
                 console.error('Error fetching data:', error);
                 studentTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-600">Failed to load data. Please check the Web App URL and ensure it's deployed correctly.</td></tr>`;
+                studentTableBody2.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-600">Failed to load data. Please check the Web App URL and ensure it's deployed correctly.</td></tr>`;
+
             }
         }
         // Show notification
@@ -301,6 +304,7 @@
             
             updateDashboardStats();
             renderStudentTable(students);
+            renderStudentTable2(students);
             updateLastUpdated();
             initializeGroupFilter();
 
@@ -410,6 +414,72 @@
                     ${sharedHtml}
                 `;
                 studentTableBody.appendChild(row);
+            });
+
+            function renderStudentTable2(data) {
+            studentTableBody2.innerHTML = '';
+            if (data.length === 0) {
+                studentTableBody2.innerHTML = `<tr><td colspan="9" class="text-center py-4">Alhamdullilah Semua Lulus.</td></tr>`;
+                return;
+            }
+
+            const processedData = [];
+            for (let i = 0; i < data.length; i++) {
+                const student = data[i];
+                if (student.kelompok !== "") {
+                    let groupSize = 1;
+                    let j = i + 1;
+                    while (j < data.length && data[j].kelompok === "") {
+                        groupSize++;
+                        j++;
+                    }
+                    processedData.push({ ...student, rowspan: groupSize, isMerged: false });
+                    for (let k = 1; k < groupSize; k++) {
+                        processedData.push({ ...data[i + k], rowspan: 1, isMerged: true });
+                    }
+                    i += groupSize - 1;
+                } else {
+                    processedData.push({ ...student, rowspan: 1, isMerged: false });
+                }
+            }
+
+            processedData.forEach((student, index) => {
+                const row = document.createElement('tr');
+                const isLastInGroup = (index === processedData.length - 1) || !processedData[index + 1].isMerged;
+                if (isLastInGroup) row.className = 'border-b border-gray-200';
+                
+                const thesisStatusClass = student.thesisStatus === 'completed' ? 'status-completed' : 'status-pending';
+                const demoStatusClass = student.demoStatus === 'completed' ? 'status-completed' : 'status-pending';
+
+                let sharedHtml = '';
+                if (!student.isMerged && thesisStatusClass == 'status-pending' && demoStatusClass == 'status-pending') {
+                    sharedHtml = `
+                        <td class="px-6 py-4" rowspan="${student.rowspan}">${student.tempatmagang}</td>
+                        <td class="px-6 py-4" rowspan="${student.rowspan}">${student.kelompok}</td>
+                        <td class="px-6 py-4" rowspan="${student.rowspan}">${student.dosenpembimbing1}</td>
+                        <td class="px-6 py-4" rowspan="${student.rowspan}">${student.dosenpembimbing2}</td>
+                        <td class="px-6 py-4" rowspan="${student.rowspan}">
+                            <span class="status-badge ${thesisStatusClass}">
+                                ${student.thesisStatus === 'completed' ? 'Completed' : 'Pending'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4" rowspan="${student.rowspan}">
+                            <span class="status-badge ${demoStatusClass}">
+                                ${student.demoStatus === 'completed' ? 'Completed' : 'Pending'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4" rowspan="${student.rowspan}">
+                            <button class="edit-btn" data-id="${student.id}">Edit</button>
+                        </td>
+                    `;
+                }
+
+                row.innerHTML = `
+                    <td class="px-6 py-4">${student.nim}</td>
+                    <td class="px-6 py-4 font-medium">${student.nama}</td>
+                    ${sharedHtml}
+                `;
+                studentTableBody2.appendChild(row);
             });
             
             // Add event listeners to edit buttons
