@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
 
     <style>
         body {
@@ -144,7 +144,7 @@
             
                 <!-- Collapsible with animation -->
                 <div id="collapsible-card-content-2" class="overflow-hidden transition-all duration-500 ease-in-out max-h-0">
-                    <canvas id="chart-mingguan-sidang" height="200"></canvas>
+                    <div id="charts-container" class="grid gap-6 md:grid-cols-2"></div>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -272,7 +272,7 @@
             <span class="text-gray-700">Updating data...</span>
         </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // URL Web App Google Apps Script
         const webAppUrl = 'https://script.google.com/macros/s/AKfycbzNurRJdbpSNR0bJu3D_clWI6oc5rlveUDQnKZxMhhyJ6aRtYgE2rfw6OQgQ6RULLVdXg/exec';
@@ -280,32 +280,74 @@
         let students = [];
         let currentStudentId = null;
         const rawData = [
-            { bulan: 'Juli', minggu: 4 },
-            { bulan: 'Juli', minggu: 4 },
-            { bulan: 'Juli', minggu: 1 },
-            { bulan: 'Agustus', minggu: 2 },
-        ];
-        const grouped = {};
-        const labels = Object.keys(grouped);
-          const data = Object.values(grouped);
+            { bulan: 'Juli', minggu: 4, sidang: true },
+            { bulan: 'Juli', minggu: 4, sidang: true },
+            { bulan: 'Juli', minggu: 1, sidang: true },
+            { bulan: 'Juli', minggu: 4, sidang: false },
+            { bulan: 'Juni', minggu: 2, sidang: true },
+            { bulan: 'Juni', minggu: 2, sidang: true },
+            { bulan: 'Juni', minggu: 1, sidang: false },
+            // Tambahkan data lainnya sesuai spreadsheet
+          ];
         
-          const ctx = document.getElementById('chart-mingguan-sidang');
-          new Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels: labels,
-              datasets: [{
-                label: 'Jumlah Sidang',
-                data: data,
-                backgroundColor: '#3b82f6'
-              }]
-            },
-            options: {
-              responsive: true,
-              scales: {
-                y: { beginAtZero: true }
+          // Filter SIDANG == true
+          const filtered = rawData.filter(d => d.sidang);
+        
+          // Group by Bulan dan Minggu
+          const grouped = {};
+          filtered.forEach(item => {
+            if (!grouped[item.bulan]) grouped[item.bulan] = {};
+            const minggu = item.minggu;
+            grouped[item.bulan][minggu] = (grouped[item.bulan][minggu] || 0) + 1;
+          });
+        
+          const container = document.getElementById('charts-container');
+        
+          Object.entries(grouped).forEach(([bulan, mingguData], index) => {
+            const canvasId = `chart-${bulan.toLowerCase()}`;
+        
+            // Tambah canvas ke DOM
+            const chartDiv = document.createElement('div');
+            chartDiv.innerHTML = `
+              <div class="bg-white rounded-xl shadow-md p-4 border-l-4 border-blue-500">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Bulan ${bulan}</h3>
+                <canvas id="${canvasId}" height="200"></canvas>
+              </div>
+            `;
+            container.appendChild(chartDiv);
+        
+            // Ambil label minggu dan datanya
+            const mingguLabels = Object.keys(mingguData).sort((a, b) => a - b).map(m => `Minggu ${m}`);
+            const mingguCounts = Object.keys(mingguData).sort((a, b) => a - b).map(m => mingguData[m]);
+        
+            // Buat Chart
+            new Chart(document.getElementById(canvasId), {
+              type: 'bar',
+              data: {
+                labels: mingguLabels,
+                datasets: [{
+                  label: 'Jumlah Mahasiswa Sidang',
+                  data: mingguCounts,
+                  backgroundColor: '#3b82f6', // Tailwind blue-500
+                  borderRadius: 8
+                }]
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: { display: false },
+                  title: { display: false }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      stepSize: 1
+                    }
+                  }
+                }
               }
-            }
+            });
           });
         // DOM Elements
         const studentTableBody = document.getElementById('student-table-body');
