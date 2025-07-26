@@ -128,6 +128,24 @@
                     </div>
                 </div>
             </div>
+            <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500 mb-6">
+                <div class="flex justify-between items-center cursor-pointer" id="toggle-card-btn">
+                    <h3 class="text-gray-700 text-lg font-semibold">Riwayat Mingguan</h3>
+                    <svg id="toggle-icon" class="w-5 h-5 text-gray-700 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+            
+                <p class="text-gray-600 mt-2">
+                    Riwayat minggu sidang per mahasiswa
+                </p> <br>
+            
+                <!-- Collapsible with animation -->
+                <div id="collapsible-card-content" class="overflow-hidden transition-all duration-500 ease-in-out max-h-0">
+                    
+                </div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="dashboard-card bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-600">
                     <h3 class="text-gray-500 text-sm font-medium">Total Students</h3>
