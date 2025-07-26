@@ -108,7 +108,6 @@
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Dospem 2</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Sidang</th>
                                 <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Demo PL</th>
-                                <th class="sticky top-0 bg-blue-800 text-white px-6 py-3">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="student-table-body-2">
@@ -472,9 +471,6 @@
                                 Pending
                             </span>
                         </td>
-                        <td class="px-6 py-4" rowspan="${student.rowspan}">
-                            <button class="edit-btn" data-id="${student.id}">Edit</button>
-                        </td>
                     `;
                 }
         
@@ -484,11 +480,6 @@
                     ${sharedHtml}
                 `;
                 studentTableBody2.appendChild(row);
-            });
-            
-            // Add event listeners to edit buttons
-            document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', () => openEditModal(parseInt(btn.dataset.id)));
             });
         }
         
