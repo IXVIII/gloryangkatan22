@@ -10,6 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         body {
@@ -129,7 +130,7 @@
                 </div>
             </div>
             <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500 mb-6">
-                <div class="flex justify-between items-center cursor-pointer" id="toggle-card-btn">
+                <div class="flex justify-between items-center cursor-pointer" id="toggle-card-btn-2">
                     <h3 class="text-gray-700 text-lg font-semibold">Riwayat Mingguan</h3>
                     <svg id="toggle-icon" class="w-5 h-5 text-gray-700 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none"
                          viewBox="0 0 24 24" stroke="currentColor">
@@ -143,7 +144,7 @@
             
                 <!-- Collapsible with animation -->
                 <div id="collapsible-card-content" class="overflow-hidden transition-all duration-500 ease-in-out max-h-0">
-                    
+                    <canvas id="chart-mingguan-sidang" height="200"></canvas>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -278,7 +279,34 @@
 
         let students = [];
         let currentStudentId = null;
-
+        const rawData = [
+            { bulan: 'Juli', minggu: 4 },
+            { bulan: 'Juli', minggu: 4 },
+            { bulan: 'Juli', minggu: 1 },
+            { bulan: 'Agustus', minggu: 2 },
+        ];
+        const grouped = {};
+        const labels = Object.keys(grouped);
+          const data = Object.values(grouped);
+        
+          const ctx = document.getElementById('chart-mingguan-sidang');
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Jumlah Sidang',
+                data: data,
+                backgroundColor: '#3b82f6'
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: { beginAtZero: true }
+              }
+            }
+          });
         // DOM Elements
         const studentTableBody = document.getElementById('student-table-body');
         const studentTableBody2 = document.getElementById('student-table-body-2');
@@ -290,12 +318,26 @@
         const saveEditBtn = document.getElementById('save-edit');
         const loadingOverlay = document.getElementById('loading-overlay');
         const toggleBtn = document.getElementById('toggle-card-btn');
+        const toggleBtn2 = document.getElementById('toggle-card-btn-2');
         const collapsibleContent = document.getElementById('collapsible-card-content');
         const toggleIcon = document.getElementById('toggle-icon');
         
         let isExpanded = false;
         
         toggleBtn.addEventListener('click', () => {
+            isExpanded = !isExpanded;
+        
+            if (isExpanded) {
+                // buka dengan animasi: set height ke scrollHeight
+                collapsibleContent.style.maxHeight = collapsibleContent.scrollHeight + "px";
+                toggleIcon.classList.add("rotate-180");
+            } else {
+                // tutup dengan animasi
+                collapsibleContent.style.maxHeight = "0px";
+                toggleIcon.classList.remove("rotate-180");
+            }
+        });
+        toggleBtn2.addEventListener('click', () => {
             isExpanded = !isExpanded;
         
             if (isExpanded) {
