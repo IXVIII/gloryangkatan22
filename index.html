@@ -132,7 +132,7 @@
             <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500 mb-6">
                 <div class="flex justify-between items-center cursor-pointer" id="toggle-card-btn-2">
                     <h3 class="text-gray-700 text-lg font-semibold">Riwayat Mingguan</h3>
-                    <svg id="toggle-icon" class="w-5 h-5 text-gray-700 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    <svg id="toggle-icon-2" class="w-5 h-5 text-gray-700 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none"
                          viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
@@ -143,7 +143,7 @@
                 </p> <br>
             
                 <!-- Collapsible with animation -->
-                <div id="collapsible-card-content" class="overflow-hidden transition-all duration-500 ease-in-out max-h-0">
+                <div id="collapsible-card-content-2" class="overflow-hidden transition-all duration-500 ease-in-out max-h-0">
                     <canvas id="chart-mingguan-sidang" height="200"></canvas>
                 </div>
             </div>
@@ -320,7 +320,9 @@
         const toggleBtn = document.getElementById('toggle-card-btn');
         const toggleBtn2 = document.getElementById('toggle-card-btn-2');
         const collapsibleContent = document.getElementById('collapsible-card-content');
+        const collapsibleContent2 = document.getElementById('collapsible-card-content-2');
         const toggleIcon = document.getElementById('toggle-icon');
+        const toggleIcon2 = document.getElementById('toggle-icon-2');
         
         let isExpanded = false;
         
@@ -342,12 +344,12 @@
         
             if (isExpanded) {
                 // buka dengan animasi: set height ke scrollHeight
-                collapsibleContent.style.maxHeight = collapsibleContent.scrollHeight + "px";
-                toggleIcon.classList.add("rotate-180");
+                collapsibleContent2.style.maxHeight = collapsibleContent2.scrollHeight + "px";
+                toggleIcon2.classList.add("rotate-180");
             } else {
                 // tutup dengan animasi
-                collapsibleContent.style.maxHeight = "0px";
-                toggleIcon.classList.remove("rotate-180");
+                collapsibleContent2.style.maxHeight = "0px";
+                toggleIcon2.classList.remove("rotate-180");
             }
         });
 
