@@ -415,8 +415,9 @@
                 `;
                 studentTableBody.appendChild(row);
             });
+        }
 
-            function renderStudentTable2(data) {
+        function renderStudentTable2(data) {
             studentTableBody2.innerHTML = '';
             if (data.length === 0) {
                 studentTableBody2.innerHTML = `<tr><td colspan="9" class="text-center py-4">Alhamdullilah Semua Lulus.</td></tr>`;
