@@ -633,6 +633,16 @@
         function updateLastUpdated() {
             document.getElementById('last-updated').textContent = new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }).replace(/\./g, ':');
         }
+        document.getElementById('toggle-card-btn').addEventListener('click', function () {
+            const content = document.getElementById('collapsible-card-content');
+            const icon = document.getElementById('toggle-icon');
+        
+            // toggle visibilitas
+            content.classList.toggle('hidden');
+        
+            // rotasi panah 180 derajat
+            icon.classList.toggle('rotate-180');
+        });
         document.getElementById('download-pdf').addEventListener('click', () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
