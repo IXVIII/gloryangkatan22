@@ -419,24 +419,27 @@
 
         function renderStudentTable2(data) {
             studentTableBody2.innerHTML = '';
+            const filteredData = data.filter(student =>
+                student.thesisStatus === 'pending' && student.demoStatus === 'pending'
+            );
             if (data.length === 0) {
                 studentTableBody2.innerHTML = `<tr><td colspan="9" class="text-center py-4">Alhamdullilah Semua Lulus.</td></tr>`;
                 return;
             }
 
             const processedData = [];
-            for (let i = 0; i < data.length; i++) {
-                const student = data[i];
+            for (let i = 0; i < filteredData.length; i++) {
+                const student = filteredData[i];
                 if (student.kelompok !== "") {
                     let groupSize = 1;
                     let j = i + 1;
-                    while (j < data.length && data[j].kelompok === "") {
+                    while (j < filteredData.length && filteredData[j].kelompok === "") {
                         groupSize++;
                         j++;
                     }
                     processedData.push({ ...student, rowspan: groupSize, isMerged: false });
                     for (let k = 1; k < groupSize; k++) {
-                        processedData.push({ ...data[i + k], rowspan: 1, isMerged: true });
+                        processedData.push({ ...filteredData[i + k], rowspan: 1, isMerged: true });
                     }
                     i += groupSize - 1;
                 } else {
@@ -448,12 +451,12 @@
                 const row = document.createElement('tr');
                 const isLastInGroup = (index === processedData.length - 1) || !processedData[index + 1].isMerged;
                 if (isLastInGroup) row.className = 'border-b border-gray-200';
-                
+        
                 const thesisStatusClass = student.thesisStatus === 'completed' ? 'status-completed' : 'status-pending';
                 const demoStatusClass = student.demoStatus === 'completed' ? 'status-completed' : 'status-pending';
-
+        
                 let sharedHtml = '';
-                if (!student.isMerged && thesisStatusClass == 'status-pending' && demoStatusClass == 'status-pending') {
+                if (!student.isMerged && thesisStatusClass === 'status-pending' && demoStatusClass === 'status-pending') {
                     sharedHtml = `
                         <td class="px-6 py-4" rowspan="${student.rowspan}">${student.tempatmagang}</td>
                         <td class="px-6 py-4" rowspan="${student.rowspan}">${student.kelompok}</td>
@@ -461,12 +464,12 @@
                         <td class="px-6 py-4" rowspan="${student.rowspan}">${student.dosenpembimbing2}</td>
                         <td class="px-6 py-4" rowspan="${student.rowspan}">
                             <span class="status-badge ${thesisStatusClass}">
-                                ${student.thesisStatus === 'completed' ? 'Completed' : 'Pending'}
+                                Pending
                             </span>
                         </td>
                         <td class="px-6 py-4" rowspan="${student.rowspan}">
                             <span class="status-badge ${demoStatusClass}">
-                                ${student.demoStatus === 'completed' ? 'Completed' : 'Pending'}
+                                Pending
                             </span>
                         </td>
                         <td class="px-6 py-4" rowspan="${student.rowspan}">
@@ -474,7 +477,7 @@
                         </td>
                     `;
                 }
-
+        
                 row.innerHTML = `
                     <td class="px-6 py-4">${student.nim}</td>
                     <td class="px-6 py-4 font-medium">${student.nama}</td>
