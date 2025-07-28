@@ -369,15 +369,19 @@
             });
         
             const semuaMinggu = Array.from(mingguSet).sort(); // sumbu X
-            const semuaBulan = Array.from(bulanSet).sort();   // kelompok warna/bar
+            const semuaBulan = Array.from(bulanSet).sort();   // per garis
         
             const datasets = semuaBulan.map((bulan, index) => {
-                const warna = `hsl(${index * 60}, 70%, 55%)`; // warna dinamis per bulan
+                const warna = `hsl(${index * 60}, 70%, 55%)`;
                 return {
                     label: `Bulan ${bulan}`,
                     data: semuaMinggu.map(minggu => chartData[bulan]?.[minggu] || 0),
+                    borderColor: warna,
                     backgroundColor: warna,
-                    borderRadius: 8
+                    fill: false,
+                    tension: 0.3, // agar garisnya smooth
+                    pointRadius: 5,
+                    pointHoverRadius: 7
                 };
             });
         
@@ -390,7 +394,7 @@
             `;
         
             new Chart(document.getElementById('chart-semua-bulan'), {
-                type: 'bar',
+                type: 'line',
                 data: {
                     labels: semuaMinggu,
                     datasets: datasets
@@ -412,7 +416,6 @@
                 }
             });
         }
-
         // Show notification
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
