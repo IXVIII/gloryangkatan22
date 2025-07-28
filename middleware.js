@@ -1,11 +1,13 @@
 import { next } from '@vercel/edge';
 
-export default function middleware(req) {
-  const url = request.nextUrl.clone();
-  const token = request.cookies.get('auth_token');
+// Middleware utama
+export function middleware(req) {
+  const url = req.nextUrl.clone();
+  const token = req.cookies.get('auth_token');
+
   // Jika belum login dan mencoba akses /
   if (!token && url.pathname === '/') {
-    url.pathname = '/review';
+    url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
@@ -24,3 +26,8 @@ export default function middleware(req) {
 
   return res;
 }
+
+// Matcher: tentukan halaman yang ingin diproteksi
+export const config = {
+  matcher: ['/', '/dashboard'], // proteksi root dan dashboard
+};
