@@ -355,7 +355,7 @@
             const mingguSet = new Set();
             const bulanSet = new Set();
         
-            const chartData = {}; // chartData[minggu][bulan] = jumlah
+            const chartData = {}; // chartData[bulan][minggu] = jumlah
         
             filtered.forEach(item => {
                 const bulan = item.bulan;
@@ -364,18 +364,18 @@
                 bulanSet.add(bulan);
                 mingguSet.add(minggu);
         
-                if (!chartData[minggu]) chartData[minggu] = {};
-                chartData[minggu][bulan] = (chartData[minggu][bulan] || 0) + 1;
+                if (!chartData[bulan]) chartData[bulan] = {};
+                chartData[bulan][minggu] = (chartData[bulan][minggu] || 0) + 1;
             });
         
-            const semuaBulan = Array.from(bulanSet).sort(); // X-axis
-            const semuaMinggu = Array.from(mingguSet).sort(); // tiap garis
+            const semuaMinggu = Array.from(mingguSet).sort(); // X-axis
+            const semuaBulan = Array.from(bulanSet).sort();   // tiap garis
         
-            const datasets = semuaMinggu.map((minggu, index) => {
-                const warna = `hsl(${index * 60}, 70%, 55%)`; // beda warna per minggu
+            const datasets = semuaBulan.map((bulan, index) => {
+                const warna = `hsl(${index * 60}, 70%, 55%)`;
                 return {
-                    label: minggu,
-                    data: semuaBulan.map(bulan => chartData[minggu]?.[bulan] || 0),
+                    label: `Bulan ${bulan}`,
+                    data: semuaMinggu.map(minggu => chartData[bulan]?.[minggu] || 0),
                     borderColor: warna,
                     backgroundColor: warna,
                     fill: false,
@@ -396,7 +396,7 @@
             new Chart(document.getElementById('chart-semua-bulan'), {
                 type: 'line',
                 data: {
-                    labels: semuaBulan,
+                    labels: semuaMinggu,
                     datasets: datasets
                 },
                 options: {
@@ -416,7 +416,6 @@
                 }
             });
         }
-
         // Show notification
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
