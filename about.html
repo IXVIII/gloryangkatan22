@@ -593,7 +593,7 @@
             const email = emailInput.value.trim();
         
             if (email === "") {
-              alert("Please enter your email.");
+            showNotification('Please enter your email.', 'error');
               return;
             }
         
