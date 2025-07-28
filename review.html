@@ -10,7 +10,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -29,7 +29,7 @@
 
         // Make Firebase available globally
         window.db = db;
-        window.firestore = { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp };
+        window.firestore = { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp, getDocs };
     </script>
     
     <style>
@@ -40,7 +40,14 @@
         .file-card {
             transition: all 0.3s ease;
         }
-        
+        .animate-bounce {
+        animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+        }
+
         .file-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -238,7 +245,8 @@
             </div>
         </div>
     </div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
+
         <!-- Upload Section -->
         <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
             <h2 class="text-xl font-semibold text-gray-800 mb-4">📤 Unggah Dokumen Baru</h2>
@@ -249,7 +257,7 @@
                         <p class="text-lg font-medium text-gray-700">Klik atau seret file ke sini</p>
                         <p class="text-sm text-gray-500">Mendukung PDF dan Word (.pdf, .doc, .docx)</p>
                     </div>
-                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx" class="hidden">
+                    <input type="file" id="fileInput" onchange="handleFileUpload(this.files[0])" accept=".pdf,.doc,.docx" class="hidden">
                 </div>
             </div>
         </div>
@@ -296,6 +304,10 @@
                 </div>
             </div>
             
+            <div id="uploadLoading" class="text-center text-blue-600 font-medium hidden">
+                ⏳ Sedang mengunggah dokumen...
+              </div>
+              
             <!-- Split Content -->
             <div class="flex h-[calc(90vh-120px)]">
                 <!-- Left Panel - File Preview -->
@@ -359,6 +371,7 @@
         let documents = [];
         let currentDocumentId = null;
         let unsubscribeDocuments = null;
+        let isUploading = false;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -366,6 +379,53 @@
             setupUploadArea();
             initializeFirestore();
         });
+
+        const DROPBOX_TOKEN = 'sl.u.AF6iaboQiCpFEWqBCXIJ1kyNt3eg3U4gvNWunP49iNU-YZcMmyz6s9_gpfjo13IlJsfCc7c3ZI4kEW9w2-iLfZG-H--lX3imsPyJdYehOeV18ZFA23ax0iKWv8U080Xz4ZCBET530ol_X8AB__hpq670d8Krx-NRqPHfQJ6bM8MwFiojQdkQu2Y2Ym8WD-dPDbrPRmrY7P_Cpoe-uHmyLWuC_bOF7FB6zO5GlsBiatYS9vWpsu7PKu62ZC8X-MZXiPs99j7pL4iMIIqshjIwMdLX3RsrWWQ08eFbpfBpWrAxTtzaRlwQrtjcKegz60PkdB_ruHMO9p0XT9MkZHTVridwBxCpfR1twW4UNb_SJqrFxRLUvMNao_0JUCLxVVRSGxgV9U6xTs8PTAO7XAh-_bemPxnE_-mqDhN0pgSnFyiJf7CxHGNaeSnxKNZTBziLOgENI0l-ne3YtXGjCvPt6kf5NsJErHH6FkwQZ1EtRtLVi2ksN-4t3a7Y9qjCm-X2VV39gHXbltQzS4yiV7lZU90cmsjBOMTfpbJ2PbL7H09H_93LV01ZVYWO-BMz6GmI_LTiK_Pv-hQwkRom8Y4hDjyuNSSdF0aJYIqFAIqK5CFfD9aGI8zvakm6Pl4-VADXdTT3AnLYXthr9PDHV4PnqGXv6CAC_wDNDCIJGZcm9v63LHCPjk4OrHaSPIbv_aBKjdmGexcbNnEI9FYb0OKhfI3jktSxmIbxipbtU1hT7U3b2k1XZC0_H_41VP7tfWThhCTrztrtvrPZcHASy6RgzCi4o8V8jtvCF3F6i8CEgx7eVQL4PTudZvxHwclkxEHwOFHeYqHylXepYOyMtc-ry66Q-vfWrHE9xNURRoxQU0QjeSuJ9VA0DzH-X78RSAj4PfEEzGFV1GmFMDhnarZefvEnF9AhAUzksysvx7_sJHlZwPQOM7VUoXbp3AOOLWkK3uazzABt5Ba0O0_FLmfS1dDcQYKZcFVDfwENICB5i7pMpehhiWlYvKMgkm7fQmVK8sRPDhLdKuJwt-LiBM8hCx01FFNhrAo5lBW3584Y42OpO_BMhEKD9AmCjq_lNVhuqhwuWwJ4cytsxaDBuCOs4WdenHpdZ80NRS-5d-agKhhefhyhJJV1Icp5pmu8-9QEcx6riVgAc9EObgk6ty40btRCOcP5JqB7FQrpc0p26VjDn1jXpq4n-q7Ly_5Ayb3O8YaVJbq-z5tpZueR1f4MFViC3l-9QtJWzmVNm-ihrj0gQ34_14BaNZzVa94FxbtubS7oYYVit0rsxYOdLmcYfOxQ8OLuAZDOkJH_tNJJ974dO0C0WkHUCRpfiXypagAWxMWFsRjHCXSLE-B1rqmK2nwx1ZYoV7wuTJ21IHhJKiKeDA';
+        async function uploadToDropbox(file) {
+            const DROPBOX_UPLOAD_URL = 'https://content.dropboxapi.com/2/files/upload';
+            
+            const response = await fetch(DROPBOX_UPLOAD_URL, {
+                method: 'POST',
+                headers: {
+                'Authorization': `Bearer ${DROPBOX_TOKEN}`,
+                'Content-Type': 'application/octet-stream',
+                'Dropbox-API-Arg': JSON.stringify({
+                    path: `/uploads/${Date.now()}_${file.name}`,
+                    mode: 'add',
+                    autorename: true,
+                    mute: false
+                })
+                },
+                body: file
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Dropbox API Error Response:", errorText);
+                console.error("HTTP Status:", response.status);
+                throw new Error(`Error from Dropbox API (${response.status}): ${errorText}`);
+            }
+            return await response.json();
+        }
+        
+        async function getShareableLink(filePath) {
+            const DROPBOX_SHARE_URL = 'https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings';
+            
+            const response = await fetch(DROPBOX_SHARE_URL, {
+                method: 'POST',
+                headers: {
+                'Authorization': `Bearer ${DROPBOX_TOKEN}`,
+                'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                path: filePath,
+                settings: {
+                    requested_visibility: 'public' // Set link jadi publik
+                }
+                })
+            });
+            return await response.json();
+        }
         // Show login modal
         function showLoginModal() {
             document.getElementById('loginModal').classList.remove('hidden');
@@ -394,7 +454,8 @@
             if (username === validUsername && password === validPassword) {
                 // Success - redirect to dashboard
                 closeLoginModal();
-                alert('✅ Login successful! Redirecting to dashboard...');
+                showNotification('✅ Login successful! Redirecting to dashboard...', 'success');
+                showNotification('❌ Gagal menambahkan komentar!', 'error');
                 // In a real application, you would redirect to the actual dashboard
                 window.location.href = '/dashboard.html';
             } else {
@@ -484,51 +545,80 @@
         }
 
         async function handleFileUpload(file) {
-            if (!file) return;
-            
-            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-            
-            if (!allowedTypes.includes(file.type)) {
-                alert('Hanya file PDF dan Word yang diperbolehkan!');
-                return;
-            }
+            if (isUploading) return;
+            isUploading = true;
+            document.getElementById('uploadLoading').classList.remove('hidden');
 
             try {
-                const today = new Date().toISOString().split('T')[0];
-                const documentData = {
-                    name: file.name,
-                    type: file.type,
-                    size: file.size,
-                    uploadDate: today,
-                    uploadTime: new Date().toLocaleTimeString('id-ID'),
-                    timestamp: window.firestore.serverTimestamp(),
-                    commentCount: 0
-                };
+                const uploadResult = await uploadToDropbox(file);
+                const shareResult = await getShareableLink(uploadResult.path_lower);
+                const fileUrl = shareResult.url.replace('dl=0', 'raw=1');
 
-                // Add document to Firestore
+                const now = new Date();
+                const uploadDate = now.toISOString().split('T')[0];
+                const uploadTime = now.toLocaleTimeString('id-ID', { hour12: false }).replaceAll(':', '.');
+
                 await window.firestore.addDoc(
-                    window.firestore.collection(window.db, 'documents'),
-                    documentData
+                window.firestore.collection(window.db, 'documents'),
+                {
+                    name: file.name.replace(/^.*?_/, ''),
+                    url: fileUrl,
+                    type: file.type || 'application/octet-stream',
+                    size: file.size,
+                    commentCount: 0,
+                    timestamp: window.firestore.serverTimestamp(),
+                    uploadDate,
+                    uploadTime
+                }
                 );
 
-                // Store file locally in browser
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    localStorage.setItem(`file_${documentData.name}_${today}`, e.target.result);
-                };
-                reader.readAsDataURL(file);
-
-                // Reset file input
-                document.getElementById('fileInput').value = '';
-                
-                // Show success message
-                showNotification('✅ Dokumen berhasil diunggah!', 'success');
-                
+                showNotification('✅ File berhasil diupload!', 'success');
             } catch (error) {
-                console.error('Error uploading document:', error);
-                showNotification('❌ Gagal mengunggah dokumen!', 'error');
+                showNotification('❌ Gagal mengupload file!', 'error');
+            } finally {
+                isUploading = false;
+                document.getElementById('uploadLoading').classList.add('hidden');
+            }
+            }
+
+        async function loadDocuments() {
+            try {
+                const { query, collection, orderBy, getDocs } = window.firestore; // ⬅️ Tambahkan ini
+                const q = query(
+                collection(db, 'documents'),
+                orderBy('uploadedAt', 'desc')
+                );
+
+                const querySnapshot = await getDocs(q);
+                const documentsList = [];
+
+                querySnapshot.forEach((doc) => {
+                documentsList.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+                });
+
+                const container = document.getElementById('documentsContainer'); // perbaiki typo di id
+                container.innerHTML = '';
+
+                documentsList.forEach(doc => {
+                const docElement = `
+                    <div class="document-item">
+                    <h3>${doc.name}</h3>
+                    <a href="${doc.url}" target="_blank" download>📥 Download</a>
+                    </div>
+                `;
+                container.innerHTML += docElement;
+                });
+
+            } catch (error) {
+                console.error("Error loading documents:", error);
+                alert("Gagal memuat dokumen. Cek konsol untuk detail.");
             }
         }
+
+
 
         function renderDocuments() {
             const container = document.getElementById('documentsContainer');
@@ -650,66 +740,57 @@
         }
 
         function loadFilePreview(doc) {
-            const container = document.getElementById('filePreviewContainer');
-            const fileKey = `file_${doc.name}_${doc.uploadDate}`;
-            const fileData = localStorage.getItem(fileKey);
-            
-            if (!fileData) {
+                const container = document.getElementById('filePreviewContainer');
+
+                // Tampilkan loading spinner dulu
                 container.innerHTML = `
-                    <div class="text-center text-gray-500">
-                        <div class="text-6xl mb-4">❌</div>
-                        <p class="text-lg font-medium">File tidak ditemukan</p>
-                        <p class="text-sm">File mungkin sudah dihapus dari browser</p>
+                    <div class="text-center text-gray-500 p-8">
+                    <div class="text-4xl animate-bounce mb-4">🔄</div>
+                    <p class="text-lg font-medium">Sedang memuat preview...</p>
                     </div>
                 `;
-                return;
-            }
-            
-            if (doc.type === 'application/pdf') {
-                // PDF Preview
-                container.innerHTML = `
-                    <div class="w-full h-full">
-                        <iframe src="${fileData}" class="w-full h-full border-0 rounded-lg" type="application/pdf">
+
+                setTimeout(() => {
+                    if (doc.type === 'application/pdf') {
+                    container.innerHTML = `
+                        <div class="w-full h-full">
+                        <iframe src="${doc.url}" class="w-full h-full border-0 rounded-lg" type="application/pdf">
                             <div class="text-center text-gray-500 p-8">
-                                <div class="text-6xl mb-4">📄</div>
-                                <p class="text-lg font-medium">PDF Preview</p>
-                                <p class="text-sm mb-4">Browser tidak mendukung preview PDF</p>
-                                <a href="${fileData}" download="${doc.name}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                                    📥 Download PDF
-                                </a>
+                            <div class="text-6xl mb-4">📄</div>
+                            <p class="text-lg font-medium">PDF Preview</p>
+                            <p class="text-sm mb-4">Browser tidak mendukung preview PDF</p>
+                            <a href="${doc.url}" download="${doc.name}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                                📥 Download PDF
+                            </a>
                             </div>
                         </iframe>
-                    </div>
-                `;
-            } else if (doc.type.includes('word')) {
-                // Word Document Preview (Limited)
-                container.innerHTML = `
-                    <div class="text-center text-gray-500 p-8">
+                        </div>
+                    `;
+                    } else if (doc.type.includes('word')) {
+                    container.innerHTML = `
+                        <div class="text-center text-gray-500 p-8">
                         <div class="text-6xl mb-4">📝</div>
                         <p class="text-lg font-medium">${doc.name}</p>
-                        <p class="text-sm mb-6">Word document preview tidak tersedia di browser</p>
-                        <div class="space-y-3">
-                            <a href="${fileData}" download="${doc.name}" class="block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
-                                📥 Download Document
-                            </a>
-                            <p class="text-xs text-gray-400">Buka dengan Microsoft Word atau Google Docs</p>
+                        <p class="text-sm mb-6">Preview Word tidak tersedia di browser</p>
+                        <a href="${doc.url}" download="${doc.name}" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                            📥 Download
+                        </a>
                         </div>
-                    </div>
-                `;
-            } else {
-                // Generic file preview
-                container.innerHTML = `
-                    <div class="text-center text-gray-500 p-8">
+                    `;
+                    } else {
+                    container.innerHTML = `
+                        <div class="text-center text-gray-500 p-8">
                         <div class="text-6xl mb-4">📄</div>
                         <p class="text-lg font-medium">${doc.name}</p>
-                        <p class="text-sm mb-6">Preview tidak tersedia untuk tipe file ini</p>
-                        <a href="${fileData}" download="${doc.name}" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
-                            📥 Download File
+                        <p class="text-sm mb-6">Preview tidak tersedia</p>
+                        <a href="${doc.url}" download="${doc.name}" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                            📥 Download
                         </a>
-                    </div>
-                `;
-            }
-        }
+                        </div>
+                    `;
+                    }
+                }, 500); // Tambahkan sedikit delay agar loading spinner terlihat
+                }
 
         let unsubscribeComments = null;
 
@@ -814,7 +895,8 @@
             const commenterName = document.getElementById('commenterName').value.trim();
             
             if (!commentText || !commenterName) {
-                alert('Mohon isi nama dan komentar!');
+                
+                showNotification('❌ Isi nama n komentar broww', 'error');
                 return;
             }
             
