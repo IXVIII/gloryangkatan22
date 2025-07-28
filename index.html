@@ -355,31 +355,31 @@
             const mingguSet = new Set();
             const bulanSet = new Set();
         
-            const chartData = {};
+            const chartData = {}; // chartData[minggu][bulan] = jumlah
         
-            // Struktur: chartData[bulan][minggu] = jumlah
             filtered.forEach(item => {
                 const bulan = item.bulan;
                 const minggu = `Minggu ${item.minggu}`;
+        
                 bulanSet.add(bulan);
                 mingguSet.add(minggu);
         
-                if (!chartData[bulan]) chartData[bulan] = {};
-                chartData[bulan][minggu] = (chartData[bulan][minggu] || 0) + 1;
+                if (!chartData[minggu]) chartData[minggu] = {};
+                chartData[minggu][bulan] = (chartData[minggu][bulan] || 0) + 1;
             });
         
-            const semuaMinggu = Array.from(mingguSet).sort(); // sumbu X
-            const semuaBulan = Array.from(bulanSet).sort();   // per garis
+            const semuaBulan = Array.from(bulanSet).sort(); // X-axis
+            const semuaMinggu = Array.from(mingguSet).sort(); // tiap garis
         
-            const datasets = semuaBulan.map((bulan, index) => {
-                const warna = `hsl(${index * 60}, 70%, 55%)`;
+            const datasets = semuaMinggu.map((minggu, index) => {
+                const warna = `hsl(${index * 60}, 70%, 55%)`; // beda warna per minggu
                 return {
-                    label: `Bulan ${bulan}`,
-                    data: semuaMinggu.map(minggu => chartData[bulan]?.[minggu] || 0),
+                    label: minggu,
+                    data: semuaBulan.map(bulan => chartData[minggu]?.[bulan] || 0),
                     borderColor: warna,
                     backgroundColor: warna,
                     fill: false,
-                    tension: 0.3, // agar garisnya smooth
+                    tension: 0.3,
                     pointRadius: 5,
                     pointHoverRadius: 7
                 };
@@ -396,7 +396,7 @@
             new Chart(document.getElementById('chart-semua-bulan'), {
                 type: 'line',
                 data: {
-                    labels: semuaMinggu,
+                    labels: semuaBulan,
                     datasets: datasets
                 },
                 options: {
@@ -416,6 +416,7 @@
                 }
             });
         }
+
         // Show notification
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
