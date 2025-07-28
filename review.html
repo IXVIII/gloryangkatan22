@@ -6,11 +6,15 @@
     <title>Document Review - MI 22</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
-    <script>
-      (function() {
-        emailjs.init("GNmXoBgDWC3HeWVga"); // ganti dengan public key dari dashboard EmailJS
-      })();
+    <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+    </script>
+    <script type="text/javascript">
+       (function(){
+          emailjs.init({
+            publicKey: "GNmXoBgDWC3HeWVga",
+          });
+       })();
     </script>
     <!-- Firebase SDK -->
     <script type="module">
