@@ -6,7 +6,12 @@
     <title>Document Review - MI 22</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700&display=swap" rel="stylesheet">
-    
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script>
+      (function() {
+        emailjs.init("GNmXoBgDWC3HeWVga"); // ganti dengan public key dari dashboard EmailJS
+      })();
+    </script>
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -227,7 +232,7 @@
                             >
                             <button 
                               type="button" 
-                              onclick="" 
+                              onclick="handleSendRequest()" 
                               class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
                             >
                               Send
@@ -500,6 +505,28 @@
         function showInfo() {
             alert('About Us: MI 22 Document Review System - Bismillah LULUS! 🎓');
         }
+        function handleSendRequest() {
+            const emailInput = document.getElementById("email");
+            const email = emailInput.value.trim();
+        
+            if (email === "") {
+              alert("Please enter your email.");
+              return;
+            }
+        
+            const templateParams = {
+              requester_email: email,
+            };
+        
+            emailjs.send('service_z7y0yvq', 'template_ao7othl', templateParams)
+              .then(function(response) {
+                alert("✅ Email request sent successfully!");
+                emailInput.value = "";
+              }, function(error) {
+                alert("❌ Failed to send email. Please try again later.");
+                console.error(error);
+              });
+          }
 
         // Close modal when clicking outside
         document.getElementById('loginModal').addEventListener('click', function(event) {
