@@ -446,25 +446,28 @@
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            
-            // Demo credentials
+        
             const validUsername = 'admin';
             const validPassword = 'mi22lulus';
-            
+        
             if (username === validUsername && password === validPassword) {
-                // Success - redirect to dashboard
+                // ✅ Simpan login token di cookie (1 hari)
+                document.cookie = "auth_token=valid; path=/; max-age=86400";
+        
                 closeLoginModal();
                 showNotification('✅ Login successful! Redirecting to dashboard...', 'success');
-                showNotification('❌ Gagal menambahkan komentar!', 'error');
-                // In a real application, you would redirect to the actual dashboard
-                window.location.href = '/dashboard.html';
+        
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
             } else {
-                // Show error message
+                // ❌ Tampilkan error
                 document.getElementById('errorMessage').classList.remove('hidden');
                 document.getElementById('password').value = '';
                 document.getElementById('password').focus();
             }
         }
+
         // Show info function (placeholder)
         function showInfo() {
             alert('About Us: MI 22 Document Review System - Bismillah LULUS! 🎓');
