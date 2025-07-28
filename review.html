@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Review - MI 22</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDHJUml-DnP12ehdZjwm8EXg-vJ8We_Rcw",
+            authDomain: "gloryangkatan22.firebaseapp.com",
+            projectId: "gloryangkatan22",
+            storageBucket: "gloryangkatan22.firebasestorage.app",
+            messagingSenderId: "209237801158",
+            appId: "1:209237801158:web:a1fefcbc50e2e4aeca3fc7",
+            measurementId: "G-T6TKLBPDZF"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Make Firebase available globally
+        window.db = db;
+        window.firestore = { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp };
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Barlow', sans-serif;
+        }
+        
+        .file-card {
+            transition: all 0.3s ease;
+        }
+        
+        .file-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .commented {
+            border-left: 4px solid #10b981;
+        }
+        
+        .uncommented {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        
+        .comment-bubble {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-link {
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header yang sama dengan index.html -->
+    <header class="bg-blue-800 text-white shadow-lg">
+        <div class="flex justify-between items-center px-10 py-6">
+            <div>
+                <h1 class="text-3xl font-bold">MI 22, Bismillah LULUS</h1>
+                <p class="mt-2 text-blue-200">Document Review System</p>
+            </div>
+            <div class="text-right">
+                <h3 class="text-blue-200 text-sm font-medium">Last Updated</h3>
+                <p class="text-xl font-medium text-white mt-1" id="last-updated">-</p>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav class="bg-blue-900 px-10 py-3 border-t border-blue-700">
+            <div class="flex space-x-8">
+                <a href="/" class="nav-link text-blue-200 hover:text-white transition-colors duration-200 flex items-center space-x-2">
+                    <span>🏠</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/review.html" class="nav-link active text-blue-200 hover:text-white transition-colors duration-200 flex items-center space-x-2">
+                    <span>📄</span>
+                    <span>Document Review</span>
+                </a>
+                <a href="#" class="nav-link text-blue-200 hover:text-white transition-colors duration-200 flex items-center space-x-2" onclick="showInfo()">
+                    <span>ℹ️</span>
+                    <span>Info</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Upload Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">📤 Unggah Dokumen Baru</h2>
+            <div id="uploadArea" class="upload-area rounded-lg p-8 text-center cursor-pointer">
+                <div class="space-y-4">
+                    <div class="text-4xl">📁</div>
+                    <div>
+                        <p class="text-lg font-medium text-gray-700">Klik atau seret file ke sini</p>
+                        <p class="text-sm text-gray-500">Mendukung PDF dan Word (.pdf, .doc, .docx)</p>
+                    </div>
+                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx" class="hidden">
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex flex-wrap items-center gap-4">
+                <h3 class="text-lg font-semibold text-gray-800">Filter:</h3>
+                <button onclick="filterFiles('all')" class="filter-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                    Semua File
+                </button>
+                <button onclick="filterFiles('commented')" class="filter-btn bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                    💬 Ada Komentar
+                </button>
+                <button onclick="filterFiles('uncommented')" class="filter-btn bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
+                    ⏳ Belum Ada Komentar
+                </button>
+                <select id="dateFilter" onchange="filterByDate()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="all">Semua Tanggal</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Documents Section -->
+        <div class="space-y-6" id="documentsContainer">
+            <!-- Documents will be dynamically added here -->
+        </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div id="commentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-semibold text-gray-800" id="modalTitle">Komentar Dokumen</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                </div>
+            </div>
+            
+            <div class="p-6 max-h-96 overflow-y-auto">
+                <div id="commentsContainer" class="space-y-4 mb-6">
+                    <!-- Comments will be displayed here -->
+                </div>
+                
+                <div class="border-t pt-4">
+                    <textarea id="newComment" placeholder="Tulis komentar Anda..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" rows="3"></textarea>
+                    <div class="flex items-center justify-between mt-3">
+                        <input type="text" id="commenterName" placeholder="Nama Anda" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button onclick="addComment()" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                            Kirim Komentar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let documents = [];
+        let currentDocumentId = null;
+        let unsubscribeDocuments = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentDate();
+            setupUploadArea();
+            initializeFirestore();
+        });
+
+        // Initialize Firestore listeners
+        function initializeFirestore() {
+            if (!window.db) {
+                setTimeout(initializeFirestore, 100);
+                return;
+            }
+            
+            // Listen to documents collection
+            const documentsQuery = window.firestore.query(
+                window.firestore.collection(window.db, 'documents'),
+                window.firestore.orderBy('uploadDate', 'desc')
+            );
+            
+            unsubscribeDocuments = window.firestore.onSnapshot(documentsQuery, (snapshot) => {
+                documents = [];
+                snapshot.forEach((doc) => {
+                    documents.push({ id: doc.id, ...doc.data() });
+                });
+                renderDocuments();
+                updateDateFilter();
+            });
+        }
+
+        function updateCurrentDate() {
+            const today = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            document.getElementById('last-updated').textContent = today.toLocaleDateString('id-ID', options);
+        }
+
+        function setupUploadArea() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFileUpload(e.dataTransfer.files[0]);
+            });
+            
+            fileInput.addEventListener('change', (e) => {
+                handleFileUpload(e.target.files[0]);
+            });
+        }
+
+        async function handleFileUpload(file) {
+            if (!file) return;
+            
+            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            
+            if (!allowedTypes.includes(file.type)) {
+                alert('Hanya file PDF dan Word yang diperbolehkan!');
+                return;
+            }
+
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const documentData = {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    uploadDate: today,
+                    uploadTime: new Date().toLocaleTimeString('id-ID'),
+                    timestamp: window.firestore.serverTimestamp(),
+                    commentCount: 0
+                };
+
+                // Add document to Firestore
+                await window.firestore.addDoc(
+                    window.firestore.collection(window.db, 'documents'),
+                    documentData
+                );
+
+                // Store file locally in browser
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    localStorage.setItem(`file_${documentData.name}_${today}`, e.target.result);
+                };
+                reader.readAsDataURL(file);
+
+                // Reset file input
+                document.getElementById('fileInput').value = '';
+                
+                // Show success message
+                showNotification('✅ Dokumen berhasil diunggah!', 'success');
+                
+            } catch (error) {
+                console.error('Error uploading document:', error);
+                showNotification('❌ Gagal mengunggah dokumen!', 'error');
+            }
+        }
+
+        function renderDocuments() {
+            const container = document.getElementById('documentsContainer');
+            
+            if (documents.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">📄</div>
+                        <h3 class="text-xl font-medium text-gray-600 mb-2">Belum ada dokumen</h3>
+                        <p class="text-gray-500">Unggah dokumen pertama Anda untuk memulai kolaborasi</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group documents by date
+            const groupedDocs = documents.reduce((groups, doc) => {
+                const date = doc.uploadDate;
+                if (!groups[date]) groups[date] = [];
+                groups[date].push(doc);
+                return groups;
+            }, {});
+
+            let html = '';
+            
+            Object.keys(groupedDocs).sort().reverse().forEach(date => {
+                const dateObj = new Date(date);
+                const formattedDate = dateObj.toLocaleDateString('id-ID', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                html += `
+                    <div class="date-group" data-date="${date}">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm mr-3">📅</span>
+                            ${formattedDate}
+                        </h3>
+                        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                `;
+                
+                groupedDocs[date].forEach(doc => {
+                    const hasComments = doc.commentCount > 0;
+                    const fileIcon = getFileIcon(doc.type);
+                    const fileSize = formatFileSize(doc.size);
+                    
+                    html += `
+                        <div class="file-card bg-white rounded-lg shadow-md p-6 ${hasComments ? 'commented' : 'uncommented'}" data-status="${hasComments ? 'commented' : 'uncommented'}">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="text-3xl">${fileIcon}</div>
+                                    <div>
+                                        <h4 class="font-medium text-gray-800 truncate" title="${doc.name}">${doc.name}</h4>
+                                        <p class="text-sm text-gray-500">${fileSize} • ${doc.uploadTime}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    ${hasComments ? 
+                                        `<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                            💬 ${doc.commentCount}
+                                        </span>` : 
+                                        `<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                                            ⏳ Belum ada komentar
+                                        </span>`
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <button onclick="openCommentModal('${doc.id}')" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm">
+                                    ${hasComments ? 'Lihat Komentar' : 'Tambah Komentar'}
+                                </button>
+                                <button onclick="deleteDocument('${doc.id}')" class="text-red-500 hover:text-red-700 text-sm">
+                                    🗑️ Hapus
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function getFileIcon(type) {
+            if (type === 'application/pdf') return '📄';
+            if (type.includes('word')) return '📝';
+            return '📄';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function openCommentModal(docId) {
+            currentDocumentId = docId;
+            const doc = documents.find(d => d.id === docId);
+            
+            document.getElementById('modalTitle').textContent = `Komentar: ${doc.name}`;
+            document.getElementById('commentModal').classList.remove('hidden');
+            document.getElementById('commentModal').classList.add('flex');
+            
+            setupCommentsListener();
+        }
+
+        let unsubscribeComments = null;
+
+        function setupCommentsListener() {
+            // Unsubscribe from previous listener
+            if (unsubscribeComments) {
+                unsubscribeComments();
+            }
+
+            // Listen to comments for current document
+            const commentsQuery = window.firestore.query(
+                window.firestore.collection(window.db, 'comments'),
+                window.firestore.orderBy('timestamp', 'asc')
+            );
+
+            unsubscribeComments = window.firestore.onSnapshot(commentsQuery, (snapshot) => {
+                const comments = [];
+                snapshot.forEach((doc) => {
+                    const comment = { id: doc.id, ...doc.data() };
+                    if (comment.documentId === currentDocumentId) {
+                        comments.push(comment);
+                    }
+                });
+                renderComments(comments);
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('commentModal').classList.add('hidden');
+            document.getElementById('commentModal').classList.remove('flex');
+            document.getElementById('newComment').value = '';
+            document.getElementById('commenterName').value = '';
+            
+            // Unsubscribe from comments listener
+            if (unsubscribeComments) {
+                unsubscribeComments();
+                unsubscribeComments = null;
+            }
+            
+            currentDocumentId = null;
+        }
+
+        function renderComments(comments) {
+            const container = document.getElementById('commentsContainer');
+            
+            if (comments.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-2">💬</div>
+                        <p>Belum ada komentar. Jadilah yang pertama!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            comments.forEach(comment => {
+                const timestamp = comment.timestamp ? 
+                    new Date(comment.timestamp.seconds * 1000).toLocaleString('id-ID') : 
+                    comment.timestampString || 'Baru saja';
+                    
+                html += `
+                    <div class="comment-bubble bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium text-gray-800">${comment.author}</span>
+                            <span class="text-sm text-gray-500">${timestamp}</span>
+                        </div>
+                        <p class="text-gray-700">${comment.text}</p>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        async function addComment() {
+            const commentText = document.getElementById('newComment').value.trim();
+            const commenterName = document.getElementById('commenterName').value.trim();
+            
+            if (!commentText || !commenterName) {
+                alert('Mohon isi nama dan komentar!');
+                return;
+            }
+            
+            try {
+                const commentData = {
+                    documentId: currentDocumentId,
+                    author: commenterName,
+                    text: commentText,
+                    timestamp: window.firestore.serverTimestamp(),
+                    timestampString: new Date().toLocaleString('id-ID')
+                };
+                
+                // Add comment to Firestore
+                await window.firestore.addDoc(
+                    window.firestore.collection(window.db, 'comments'),
+                    commentData
+                );
+
+                // Update document comment count
+                const docRef = window.firestore.doc(window.db, 'documents', currentDocumentId);
+                const doc = documents.find(d => d.id === currentDocumentId);
+                await window.firestore.updateDoc(docRef, {
+                    commentCount: (doc.commentCount || 0) + 1
+                });
+                
+                document.getElementById('newComment').value = '';
+                document.getElementById('commenterName').value = '';
+                
+                showNotification('✅ Komentar berhasil ditambahkan!', 'success');
+                
+            } catch (error) {
+                console.error('Error adding comment:', error);
+                showNotification('❌ Gagal menambahkan komentar!', 'error');
+            }
+        }
+
+        async function deleteDocument(docId) {
+            if (confirm('Apakah Anda yakin ingin menghapus dokumen ini?')) {
+                try {
+                    // Delete document from Firestore
+                    await window.firestore.deleteDoc(
+                        window.firestore.doc(window.db, 'documents', docId)
+                    );
+
+                    // Delete associated comments
+                    const commentsQuery = window.firestore.query(
+                        window.firestore.collection(window.db, 'comments')
+                    );
+                    
+                    const commentsSnapshot = await window.firestore.onSnapshot(commentsQuery, async (snapshot) => {
+                        const batch = [];
+                        snapshot.forEach((doc) => {
+                            const comment = doc.data();
+                            if (comment.documentId === docId) {
+                                batch.push(window.firestore.deleteDoc(doc.ref));
+                            }
+                        });
+                        await Promise.all(batch);
+                    });
+
+                    showNotification('✅ Dokumen berhasil dihapus!', 'success');
+                    
+                } catch (error) {
+                    console.error('Error deleting document:', error);
+                    showNotification('❌ Gagal menghapus dokumen!', 'error');
+                }
+            }
+        }
+
+        function filterFiles(status) {
+            const cards = document.querySelectorAll('.file-card');
+            
+            cards.forEach(card => {
+                if (status === 'all' || card.dataset.status === status) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-blue-300');
+            });
+            event.target.classList.add('ring-2', 'ring-blue-300');
+        }
+
+        function updateDateFilter() {
+            const dateFilter = document.getElementById('dateFilter');
+            const dates = [...new Set(documents.map(doc => doc.uploadDate))].sort().reverse();
+            
+            // Clear existing options except "Semua Tanggal"
+            dateFilter.innerHTML = '<option value="all">Semua Tanggal</option>';
+            
+            dates.forEach(date => {
+                const dateObj = new Date(date);
+                const formattedDate = dateObj.toLocaleDateString('id-ID');
+                const option = document.createElement('option');
+                option.value = date;
+                option.textContent = formattedDate;
+                dateFilter.appendChild(option);
+            });
+        }
+
+        function filterByDate() {
+            const selectedDate = document.getElementById('dateFilter').value;
+            const dateGroups = document.querySelectorAll('.date-group');
+            
+            dateGroups.forEach(group => {
+                if (selectedDate === 'all' || group.dataset.date === selectedDate) {
+                    group.style.display = 'block';
+                } else {
+                    group.style.display = 'none';
+                }
+            });
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('commentModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium transition-all duration-300 transform translate-x-full`;
+            
+            if (type === 'success') {
+                notification.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                notification.classList.add('bg-red-500');
+            } else {
+                notification.classList.add('bg-blue-500');
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Handle Enter key in comment textarea
+        document.getElementById('newComment').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                addComment();
+            }
+        });
+
+        // Info function
+        function showInfo() {
+            alert('📄 Document Review System\n\n✅ Upload dokumen PDF/Word\n✅ Komentar real-time\n✅ Kolaborasi multi-user\n✅ Filter dan pencarian\n\nDeveloped for MI 22 - Astra Tech');
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96605e15b2df4048',t:'MTc1MzY2MzY3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
