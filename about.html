@@ -560,27 +560,42 @@
         }
 
         // Handle login form submission
-        function handleLogin(event) {
+        async function handleLogin(event) {
             event.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
             
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            // Demo credentials
-            const validUsername = 'admin';
-            const validPassword = 'mi22lulus';
-            
-            if (username === validUsername && password === validPassword) {
-                // Success - redirect to dashboard
-                closeLoginModal();
-                alert('✅ Login successful! Redirecting to dashboard...');
-                // In a real application, you would redirect to the actual dashboard
-                // window.location.href = '/dashboard.html';
-            } else {
-                // Show error message
-                document.getElementById('errorMessage').classList.remove('hidden');
-                document.getElementById('password').value = '';
-                document.getElementById('password').focus();
+
+            try {
+                const usersCollection = window.firestore.collection(window.db, 'userpass');
+
+                const q = window.firestore.query(usersCollection);
+
+                const querySnapshot = await window.firestore.getDocs(q);
+
+                let found = false;
+
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    
+                    if (data.username === username && data.password === password) {
+                        found = true;
+                    }
+                });
+
+                if (found) {
+                    closeLoginModal();
+                    showNotification('✅ Login successful! Redirecting to dashboard...', 'success');
+                    window.location.href = '/index.html';
+                } else {
+                    document.getElementById('errorMessage').classList.remove('hidden');
+                    document.getElementById('password').value = '';
+                    document.getElementById('password').focus();
+                }
+            } catch (error) {
+                console.error("Error during login: ", error);
+                showNotification('❌ Login failed. Please try again later.', 'error');
             }
         }
 
