@@ -8,15 +8,19 @@ export default function middleware(req) {
     url.pathname = '/review';
     return NextResponse.redirect(url);
   }
-  
-  return next({
-    headers: {
-      'Referrer-Policy': 'origin-when-cross-origin',
-      'X-Frame-Options': 'DENY',
-      'X-Content-Type-Options': 'nosniff',
-      'X-DNS-Prefetch-Control': 'on',
-      'Strict-Transport-Security':
-        'max-age=31536000; includeSubDomains; preload',
-    },
-  });
+
+  // Jika sudah login atau bukan halaman terproteksi
+  const res = NextResponse.next();
+
+  // Tambahkan security headers
+  res.headers.set('Referrer-Policy', 'origin-when-cross-origin');
+  res.headers.set('X-Frame-Options', 'DENY');
+  res.headers.set('X-Content-Type-Options', 'nosniff');
+  res.headers.set('X-DNS-Prefetch-Control', 'on');
+  res.headers.set(
+    'Strict-Transport-Security',
+    'max-age=31536000; includeSubDomains; preload'
+  );
+
+  return res;
 }
