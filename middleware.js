@@ -7,7 +7,7 @@ export function middleware(req) {
 
   // Jika belum login dan mencoba akses /
   if (!token && url.pathname === '/') {
-    url.pathname = '/login';
+    url.pathname = '/review';
     return NextResponse.redirect(url);
   }
 
@@ -29,5 +29,5 @@ export function middleware(req) {
 
 // Matcher: tentukan halaman yang ingin diproteksi
 export const config = {
-  matcher: ['/', '/dashboard'], // proteksi root dan dashboard
+  matcher: ['/', '/index'], // proteksi root dan dashboard
 };
