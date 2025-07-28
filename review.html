@@ -115,7 +115,7 @@
                 </a>
                 <a href="#" class="nav-link text-blue-200 hover:text-white transition-colors duration-200 flex items-center space-x-2" onclick="showInfo()">
                     <span>ℹ️</span>
-                    <span>About Us</span>
+                    <span>Info</span>
                 </a>
             </div>
         </nav>
@@ -162,28 +162,75 @@
         </div>
     </div>
 
-    <!-- Comment Modal -->
+    <!-- Comment Modal with File Preview -->
     <div id="commentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
-            <div class="p-6 border-b border-gray-200">
+        <div class="bg-white rounded-xl shadow-2xl max-w-7xl w-full mx-4 max-h-[90vh] overflow-hidden">
+            <!-- Header -->
+            <div class="p-6 border-b border-gray-200 bg-gray-50">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-xl font-semibold text-gray-800" id="modalTitle">Komentar Dokumen</h3>
-                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">📄</span>
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800" id="modalTitle">Review Dokumen</h3>
+                            <p class="text-sm text-gray-600" id="modalSubtitle">Preview dan komentar</p>
+                        </div>
+                    </div>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-3xl font-light">&times;</button>
                 </div>
             </div>
             
-            <div class="p-6 max-h-96 overflow-y-auto">
-                <div id="commentsContainer" class="space-y-4 mb-6">
-                    <!-- Comments will be displayed here -->
+            <!-- Split Content -->
+            <div class="flex h-[calc(90vh-120px)]">
+                <!-- Left Panel - File Preview -->
+                <div class="w-1/2 border-r border-gray-200 bg-gray-50">
+                    <div class="p-4 border-b border-gray-200 bg-white">
+                        <h4 class="font-medium text-gray-800 flex items-center">
+                            <span class="mr-2">👁️</span>
+                            Preview Dokumen
+                        </h4>
+                    </div>
+                    <div class="p-6 h-full overflow-auto">
+                        <div id="filePreviewContainer" class="h-full flex items-center justify-center">
+                            <!-- File preview will be loaded here -->
+                            <div class="text-center text-gray-500">
+                                <div class="text-6xl mb-4">📄</div>
+                                <p class="text-lg">Loading preview...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="border-t pt-4">
-                    <textarea id="newComment" placeholder="Tulis komentar Anda..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" rows="3"></textarea>
-                    <div class="flex items-center justify-between mt-3">
-                        <input type="text" id="commenterName" placeholder="Nama Anda" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <button onclick="addComment()" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                            Kirim Komentar
-                        </button>
+                <!-- Right Panel - Comments -->
+                <div class="w-1/2 flex flex-col">
+                    <div class="p-4 border-b border-gray-200 bg-white">
+                        <h4 class="font-medium text-gray-800 flex items-center justify-between">
+                            <span class="flex items-center">
+                                <span class="mr-2">💬</span>
+                                Komentar & Diskusi
+                            </span>
+                            <span id="commentCount" class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">0</span>
+                        </h4>
+                    </div>
+                    
+                    <!-- Comments List -->
+                    <div class="flex-1 p-4 overflow-y-auto bg-gray-50">
+                        <div id="commentsContainer" class="space-y-4">
+                            <!-- Comments will be displayed here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Comment Input -->
+                    <div class="p-4 border-t border-gray-200 bg-white">
+                        <div class="space-y-3">
+                            <textarea id="newComment" placeholder="Tulis komentar atau feedback Anda..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" rows="3"></textarea>
+                            <div class="flex items-center justify-between">
+                                <input type="text" id="commenterName" placeholder="Nama Anda" class="flex-1 mr-3 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <button onclick="addComment()" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
+                                    <span>📤</span>
+                                    <span>Kirim</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -418,11 +465,77 @@
             currentDocumentId = docId;
             const doc = documents.find(d => d.id === docId);
             
-            document.getElementById('modalTitle').textContent = `Komentar: ${doc.name}`;
+            document.getElementById('modalTitle').textContent = `Review: ${doc.name}`;
+            document.getElementById('modalSubtitle').textContent = `${formatFileSize(doc.size)} • Uploaded ${doc.uploadTime}`;
             document.getElementById('commentModal').classList.remove('hidden');
             document.getElementById('commentModal').classList.add('flex');
             
+            // Load file preview
+            loadFilePreview(doc);
+            
             setupCommentsListener();
+        }
+
+        function loadFilePreview(doc) {
+            const container = document.getElementById('filePreviewContainer');
+            const fileKey = `file_${doc.name}_${doc.uploadDate}`;
+            const fileData = localStorage.getItem(fileKey);
+            
+            if (!fileData) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500">
+                        <div class="text-6xl mb-4">❌</div>
+                        <p class="text-lg font-medium">File tidak ditemukan</p>
+                        <p class="text-sm">File mungkin sudah dihapus dari browser</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (doc.type === 'application/pdf') {
+                // PDF Preview
+                container.innerHTML = `
+                    <div class="w-full h-full">
+                        <iframe src="${fileData}" class="w-full h-full border-0 rounded-lg" type="application/pdf">
+                            <div class="text-center text-gray-500 p-8">
+                                <div class="text-6xl mb-4">📄</div>
+                                <p class="text-lg font-medium">PDF Preview</p>
+                                <p class="text-sm mb-4">Browser tidak mendukung preview PDF</p>
+                                <a href="${fileData}" download="${doc.name}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                                    📥 Download PDF
+                                </a>
+                            </div>
+                        </iframe>
+                    </div>
+                `;
+            } else if (doc.type.includes('word')) {
+                // Word Document Preview (Limited)
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 p-8">
+                        <div class="text-6xl mb-4">📝</div>
+                        <p class="text-lg font-medium">${doc.name}</p>
+                        <p class="text-sm mb-6">Word document preview tidak tersedia di browser</p>
+                        <div class="space-y-3">
+                            <a href="${fileData}" download="${doc.name}" class="block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                                📥 Download Document
+                            </a>
+                            <p class="text-xs text-gray-400">Buka dengan Microsoft Word atau Google Docs</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Generic file preview
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 p-8">
+                        <div class="text-6xl mb-4">📄</div>
+                        <p class="text-lg font-medium">${doc.name}</p>
+                        <p class="text-sm mb-6">Preview tidak tersedia untuk tipe file ini</p>
+                        <a href="${fileData}" download="${doc.name}" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                            📥 Download File
+                        </a>
+                    </div>
+                `;
+            }
         }
 
         let unsubscribeComments = null;
@@ -457,6 +570,14 @@
             document.getElementById('newComment').value = '';
             document.getElementById('commenterName').value = '';
             
+            // Clear file preview
+            document.getElementById('filePreviewContainer').innerHTML = `
+                <div class="text-center text-gray-500">
+                    <div class="text-6xl mb-4">📄</div>
+                    <p class="text-lg">Loading preview...</p>
+                </div>
+            `;
+            
             // Unsubscribe from comments listener
             if (unsubscribeComments) {
                 unsubscribeComments();
@@ -468,35 +589,51 @@
 
         function renderComments(comments) {
             const container = document.getElementById('commentsContainer');
+            const countElement = document.getElementById('commentCount');
+            
+            // Update comment count
+            countElement.textContent = comments.length;
             
             if (comments.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-8 text-gray-500">
                         <div class="text-4xl mb-2">💬</div>
-                        <p>Belum ada komentar. Jadilah yang pertama!</p>
+                        <p class="font-medium">Belum ada komentar</p>
+                        <p class="text-sm">Jadilah yang pertama memberikan feedback!</p>
                     </div>
                 `;
                 return;
             }
             
             let html = '';
-            comments.forEach(comment => {
+            comments.forEach((comment, index) => {
                 const timestamp = comment.timestamp ? 
                     new Date(comment.timestamp.seconds * 1000).toLocaleString('id-ID') : 
                     comment.timestampString || 'Baru saja';
                     
                 html += `
-                    <div class="comment-bubble bg-gray-50 rounded-lg p-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="font-medium text-gray-800">${comment.author}</span>
-                            <span class="text-sm text-gray-500">${timestamp}</span>
+                    <div class="comment-bubble bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                                    ${comment.author.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-800">${comment.author}</span>
+                                    <div class="text-xs text-gray-500">${timestamp}</div>
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">#${index + 1}</span>
                         </div>
-                        <p class="text-gray-700">${comment.text}</p>
+                        <p class="text-gray-700 leading-relaxed">${comment.text}</p>
                     </div>
                 `;
             });
             
             container.innerHTML = html;
+            
+            // Auto scroll to bottom when new comment is added
+            container.scrollTop = container.scrollHeight;
         }
 
         async function addComment() {
@@ -671,5 +808,5 @@
             alert('📄 Document Review System\n\n✅ Upload dokumen PDF/Word\n✅ Komentar real-time\n✅ Kolaborasi multi-user\n✅ Filter dan pencarian\n\nDeveloped for MI 22 - Astra Tech');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96605e15b2df4048',t:'MTc1MzY2MzY3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966069e722687549',t:'MTc1MzY2NDE1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
