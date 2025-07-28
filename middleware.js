@@ -1,20 +1,6 @@
-// import { next } from '@vercel/edge';
-
-// export default function middleware(req) {
-//   return next({
-//     headers: {
-//       'Referrer-Policy': 'origin-when-cross-origin',
-//       'X-Frame-Options': 'DENY',
-//       'X-Content-Type-Options': 'nosniff',
-//       'X-DNS-Prefetch-Control': 'on',
-//       'Strict-Transport-Security':
-//         'max-age=31536000; includeSubDomains; preload',
-//     },
-//   });
-// }
+import { next } from '@vercel/edge';
 import { NextResponse } from 'next/server';
 
-// Middleware utama
 export default function middleware(req) {
   const url = req.nextUrl.clone();
   const token = req.cookies.get('auth_token'); // Ambil token dari cookie
@@ -40,7 +26,6 @@ export default function middleware(req) {
 
   return res;
 }
-
 // Tentukan halaman mana saja yang terkena middleware
 export const config = {
   matcher: ['/', '/index'], // tambahkan path yang mau diproteksi
