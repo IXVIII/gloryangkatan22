@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us - MI 22 Document Review System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+    </script>
+    <script type="text/javascript">
+       (function(){
+          emailjs.init({
+            publicKey: "GNmXoBgDWC3HeWVga",
+          });
+       })();
+    </script>
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -578,6 +588,28 @@
                 }, 300);
             }, 3000);
         }
+        function handleSendRequest() {
+            const emailInput = document.getElementById("email");
+            const email = emailInput.value.trim();
+        
+            if (email === "") {
+              alert("Please enter your email.");
+              return;
+            }
+        
+            const templateParams = {
+              requester_email: email,
+            };
+        
+            emailjs.send('service_z7y0yvq', 'template_ao7othl', templateParams)
+              .then(function(response) {
+                showNotification('✅ Email request sent successfully!');
+                emailInput.value = "";
+              }, function(error) {
+                showNotification('❌ Failed to send email. Please try again later.'); 
+                console.error(error);
+              });
+          }
         // Handle login form submission
         async function handleLogin(event) {
             event.preventDefault();
