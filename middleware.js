@@ -3,6 +3,12 @@ import { next } from '@vercel/edge';
 export default function middleware(req) {
   const url = request.nextUrl.clone();
   const token = request.cookies.get('auth_token');
+  // Jika belum login dan mencoba akses /
+  if (!token && url.pathname === '/') {
+    url.pathname = '/review';
+    return NextResponse.redirect(url);
+  }
+  
   return next({
     headers: {
       'Referrer-Policy': 'origin-when-cross-origin',
