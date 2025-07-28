@@ -147,7 +147,7 @@
                     <span>📄</span>
                     <span>Document Review</span>
                 </a>
-                <a href="#" class="nav-link text-blue-200 hover:text-white transition-colors duration-200 flex items-center space-x-2" onclick="showInfo()">
+                <a href="/about.html" class="nav-link text-blue-200 hover:text-white transition-colors duration-200 flex items-center space-x-2" onclick="showInfo()">
                     <span>ℹ️</span>
                     <span>Info</span>
                 </a>
@@ -396,7 +396,7 @@
                 closeLoginModal();
                 alert('✅ Login successful! Redirecting to dashboard...');
                 // In a real application, you would redirect to the actual dashboard
-                // window.location.href = '/dashboard.html';
+                window.location.href = '/dashboard.html';
             } else {
                 // Show error message
                 document.getElementById('errorMessage').classList.remove('hidden');
