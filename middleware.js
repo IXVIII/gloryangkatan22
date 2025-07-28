@@ -26,7 +26,3 @@ export default function middleware(req) {
 
   return res;
 }
-// Tentukan halaman mana saja yang terkena middleware
-export const config = {
-  matcher: ['/', '/index'], // tambahkan path yang mau diproteksi
-};
