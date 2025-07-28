@@ -86,6 +86,40 @@
             background-color: rgba(255, 255, 255, 0.2);
             color: white;
         }
+        .nav-link.active {
+            background-color: rgba(59, 130, 246, 0.3);
+            border-radius: 0.375rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        .modal-overlay {
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .modal-content {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -105,7 +139,7 @@
         <!-- Navigation Menu -->
         <nav class="bg-blue-900 px-10 py-3 border-t border-blue-700">
             <div class="flex space-x-8">
-                <a href="/" class="nav-link text-blue-200 hover:text-white transition-colors duration-200 flex items-center space-x-2">
+                <a href="#" class="nav-link text-blue-200 hover:text-white transition-colors duration-200 flex items-center space-x-2" onclick="showLoginModal()">
                     <span>🏠</span>
                     <span>Dashboard</span>
                 </a>
@@ -120,7 +154,90 @@
             </div>
         </nav>
     </header>
-
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden flex items-center justify-center z-50">
+        <div class="modal-content bg-white rounded-lg shadow-2xl w-full max-w-md mx-4">
+            <!-- Modal Header -->
+            <div class="bg-blue-800 text-white px-6 py-4 rounded-t-lg">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold flex items-center space-x-2">
+                        <span>🔐</span>
+                        <span>Dashboard Access</span>
+                    </h2>
+                    <button onclick="closeLoginModal()" class="text-blue-200 hover:text-white transition-colors duration-200 text-2xl">
+                        ×
+                    </button>
+                </div>
+                <p class="text-blue-200 text-sm mt-1">Please enter your credentials to continue</p>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6">
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="space-y-4">
+                        <!-- Username Field -->
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+                                Username
+                            </label>
+                            <input 
+                                type="text" 
+                                id="username" 
+                                name="username"
+                                class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                placeholder="Enter your username"
+                                required
+                            >
+                        </div>
+                        
+                        <!-- Password Field -->
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                                Password
+                            </label>
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password"
+                                class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                placeholder="Enter your password"
+                                required
+                            >
+                        </div>
+                        
+                        <!-- Demo Credentials Info -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <p class="text-sm text-blue-800 font-medium mb-1">Demo Credentials:</p>
+                            <p class="text-xs text-blue-600">Username: <span class="font-mono bg-blue-100 px-1 rounded">admin</span></p>
+                            <p class="text-xs text-blue-600">Password: <span class="font-mono bg-blue-100 px-1 rounded">mi22lulus</span></p>
+                        </div>
+                        
+                        <!-- Error Message -->
+                        <div id="errorMessage" class="hidden bg-red-50 border border-red-200 rounded-lg p-3">
+                            <p class="text-sm text-red-800">❌ Invalid username or password. Please try again.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal Footer -->
+                    <div class="flex space-x-3 mt-6">
+                        <button 
+                            type="button" 
+                            onclick="closeLoginModal()"
+                            class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit"
+                            class="flex-1 px-4 py-3 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition-colors duration-200 font-medium"
+                        >
+                            Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Upload Section -->
         <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -248,6 +365,62 @@
             updateCurrentDate();
             setupUploadArea();
             initializeFirestore();
+        });
+        // Show login modal
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('username').focus();
+            document.getElementById('errorMessage').classList.add('hidden');
+        }
+
+        // Close login modal
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('loginForm').reset();
+            document.getElementById('errorMessage').classList.add('hidden');
+        }
+
+        // Handle login form submission
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Demo credentials
+            const validUsername = 'admin';
+            const validPassword = 'mi22lulus';
+            
+            if (username === validUsername && password === validPassword) {
+                // Success - redirect to dashboard
+                closeLoginModal();
+                alert('✅ Login successful! Redirecting to dashboard...');
+                // In a real application, you would redirect to the actual dashboard
+                // window.location.href = '/dashboard.html';
+            } else {
+                // Show error message
+                document.getElementById('errorMessage').classList.remove('hidden');
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+            }
+        }
+        // Show info function (placeholder)
+        function showInfo() {
+            alert('About Us: MI 22 Document Review System - Bismillah LULUS! 🎓');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('loginModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeLoginModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeLoginModal();
+            }
         });
 
         // Initialize Firestore listeners
