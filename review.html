@@ -507,14 +507,14 @@
 
         // Show info function (placeholder)
         function showInfo() {
-            alert('About Us: MI 22 Document Review System - Bismillah LULUS! 🎓');
+            showNotification('About Us: MI 22 Document Review System - Bismillah LULUS! 🎓','success'); 
         }
         function handleSendRequest() {
             const emailInput = document.getElementById("email");
             const email = emailInput.value.trim();
         
             if (email === "") {
-              alert("Please enter your email.");
+              showNotification('Please enter your email.','error'); 
               return;
             }
         
@@ -524,10 +524,10 @@
         
             emailjs.send('service_z7y0yvq', 'template_ao7othl', templateParams)
               .then(function(response) {
-                alert("✅ Email request sent successfully!");
+                showNotification('✅ Email request sent successfully!','success'); 
                 emailInput.value = "";
               }, function(error) {
-                alert("❌ Failed to send email. Please try again later.");
+                showNotification('❌ Failed to send email. Please try again later.','error'); 
                 console.error(error);
               });
           }
@@ -676,7 +676,7 @@
 
             } catch (error) {
                 console.error("Error loading documents:", error);
-                alert("Gagal memuat dokumen. Cek konsol untuk detail.");
+                showNotification('Gagal memuat dokumen. Cek konsol untuk detail.', 'success');
             }
         }
 
