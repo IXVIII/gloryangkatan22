@@ -370,9 +370,14 @@
         
             const semuaMinggu = Array.from(mingguSet).sort(); // X-axis
             const semuaBulan = Array.from(bulanSet).sort();   // tiap garis
-        
+            const warnaKustom = {
+                "Juni": "#ef4444", // merah
+                "Juli": "#3b82f6", // biru
+                "Agustus": "#10b981", // hijau
+                // sisanya pakai warna dinamis
+            };
             const datasets = semuaBulan.map((bulan, index) => {
-                const warna = `hsl(${index * 60}, 70%, 55%)`;
+                const warna = warnaKustom[bulan] || `hsl(${index * 60}, 70%, 55%)`;
                 return {
                     label: `Bulan ${bulan}`,
                     data: semuaMinggu.map(minggu => chartData[bulan]?.[minggu] || 0),
