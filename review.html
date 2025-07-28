@@ -648,7 +648,7 @@
                 const { query, collection, orderBy, getDocs } = window.firestore; // ⬅️ Tambahkan ini
                 const q = query(
                 collection(db, 'documents'),
-                orderBy('uploadedAt', 'desc')
+                ('uploadedAt', 'desc')
                 );
 
                 const querySnapshot = await getDocs(q);
@@ -865,7 +865,7 @@
             // Listen to comments for current document
             const commentsQuery = window.firestore.query(
                 window.firestore.collection(window.db, 'comments'),
-                window.firestore.orderBy('timestamp', 'asc')
+                window.firestore.orderBy('timestamp', 'desc')
             );
 
             unsubscribeComments = window.firestore.onSnapshot(commentsQuery, (snapshot) => {
