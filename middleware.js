@@ -24,8 +24,3 @@ export default function middleware(req) {
 
   return res;
 }
-
-// Matcher: tentukan halaman yang ingin diproteksi
-export const config = {
-  matcher: ['/', '/index'], // proteksi root dan dashboard
-};
