@@ -110,6 +110,7 @@
             </div>
             
             <!-- Modal Body -->
+            <!-- Modal Body -->
             <div class="p-6">
                 <form id="loginForm" onsubmit="handleLogin(event)">
                     <div class="space-y-4">
@@ -143,11 +144,27 @@
                             >
                         </div>
                         
-                        <!-- Demo Credentials Info -->
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <p class="text-sm text-blue-800 font-medium mb-1">Demo Credentials:</p>
-                            <p class="text-xs text-blue-600">Username: <span class="font-mono bg-blue-100 px-1 rounded">admin</span></p>
-                            <p class="text-xs text-blue-600">Password: <span class="font-mono bg-blue-100 px-1 rounded">mi22lulus</span></p>
+                
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                          <p class="text-sm text-blue-800 font-medium">
+                            Don’t have access? Please enter your email below to request access:
+                          </p>
+                          <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-2 sm:space-y-0">
+                            <input 
+                              type="email" 
+                              id="email" 
+                              name="email"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                              placeholder="Enter your email"
+                            >
+                            <button 
+                              type="button" 
+                              onclick="handleSendRequest()" 
+                              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+                            >
+                              Send
+                            </button>
+                          </div>
                         </div>
                         
                         <!-- Error Message -->
