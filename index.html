@@ -91,6 +91,14 @@
             color: white;
         }
     </style>
+    <script>
+      const isLoggedIn = document.cookie.includes("auth_token=valid");
+    
+      if (!isLoggedIn) {
+        // Redirect ke halaman review atau login
+        window.location.href = '/review.html';
+      }
+    </script>
 </head>
 <body>
     <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
