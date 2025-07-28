@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK (Firestore only) -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -30,6 +30,87 @@
         // Make Firebase available globally
         window.db = db;
         window.firestore = { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp };
+    </script>
+    
+    <!-- IndexedDB for File Storage -->
+    <script>
+        // IndexedDB setup for file storage
+        class FileStorage {
+            constructor() {
+                this.dbName = 'MI22DocumentStorage';
+                this.version = 1;
+                this.db = null;
+            }
+
+            async init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, this.version);
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        resolve();
+                    };
+                    
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains('files')) {
+                            db.createObjectStore('files', { keyPath: 'id' });
+                        }
+                    };
+                });
+            }
+
+            async saveFile(id, file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const transaction = this.db.transaction(['files'], 'readwrite');
+                        const store = transaction.objectStore('files');
+                        
+                        const fileData = {
+                            id: id,
+                            name: file.name,
+                            type: file.type,
+                            size: file.size,
+                            data: reader.result,
+                            timestamp: Date.now()
+                        };
+                        
+                        const request = store.put(fileData);
+                        request.onsuccess = () => resolve(fileData);
+                        request.onerror = () => reject(request.error);
+                    };
+                    reader.onerror = () => reject(reader.error);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            async getFile(id) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['files'], 'readonly');
+                    const store = transaction.objectStore('files');
+                    const request = store.get(id);
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async deleteFile(id) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['files'], 'readwrite');
+                    const store = transaction.objectStore('files');
+                    const request = store.delete(id);
+                    
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            }
+        }
+
+        // Initialize file storage
+        window.fileStorage = new FileStorage();
     </script>
     
     <style>
@@ -86,40 +167,6 @@
             background-color: rgba(255, 255, 255, 0.2);
             color: white;
         }
-        .nav-link.active {
-            background-color: rgba(59, 130, 246, 0.3);
-            border-radius: 0.375rem;
-            padding: 0.5rem 1rem;
-        }
-        
-        .modal-overlay {
-            backdrop-filter: blur(4px);
-            animation: fadeIn 0.3s ease-out;
-        }
-        
-        .modal-content {
-            animation: slideIn 0.3s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes slideIn {
-            from { 
-                opacity: 0;
-                transform: translateY(-20px) scale(0.95);
-            }
-            to { 
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-        
-        .input-field:focus {
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -139,7 +186,7 @@
         <!-- Navigation Menu -->
         <nav class="bg-blue-900 px-10 py-3 border-t border-blue-700">
             <div class="flex space-x-8">
-                <a href="#" class="nav-link text-blue-200 hover:text-white transition-colors duration-200 flex items-center space-x-2" onclick="showLoginModal()">
+                <a href="/" class="nav-link text-blue-200 hover:text-white transition-colors duration-200 flex items-center space-x-2">
                     <span>🏠</span>
                     <span>Dashboard</span>
                 </a>
@@ -154,103 +201,32 @@
             </div>
         </nav>
     </header>
-    <!-- Login Modal -->
-    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden flex items-center justify-center z-50">
-        <div class="modal-content bg-white rounded-lg shadow-2xl w-full max-w-md mx-4">
-            <!-- Modal Header -->
-            <div class="bg-blue-800 text-white px-6 py-4 rounded-t-lg">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold flex items-center space-x-2">
-                        <span>🔐</span>
-                        <span>Dashboard Access</span>
-                    </h2>
-                    <button onclick="closeLoginModal()" class="text-blue-200 hover:text-white transition-colors duration-200 text-2xl">
-                        ×
-                    </button>
-                </div>
-                <p class="text-blue-200 text-sm mt-1">Please enter your credentials to continue</p>
-            </div>
-            
-            <!-- Modal Body -->
-            <div class="p-6">
-                <form id="loginForm" onsubmit="handleLogin(event)">
-                    <div class="space-y-4">
-                        <!-- Username Field -->
-                        <div>
-                            <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
-                                Username
-                            </label>
-                            <input 
-                                type="text" 
-                                id="username" 
-                                name="username"
-                                class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                                placeholder="Enter your username"
-                                required
-                            >
-                        </div>
-                        
-                        <!-- Password Field -->
-                        <div>
-                            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-                                Password
-                            </label>
-                            <input 
-                                type="password" 
-                                id="password" 
-                                name="password"
-                                class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                                placeholder="Enter your password"
-                                required
-                            >
-                        </div>
-                        
-                        <!-- Demo Credentials Info -->
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <p class="text-sm text-blue-800 font-medium mb-1">Demo Credentials:</p>
-                            <p class="text-xs text-blue-600">Username: <span class="font-mono bg-blue-100 px-1 rounded">admin</span></p>
-                            <p class="text-xs text-blue-600">Password: <span class="font-mono bg-blue-100 px-1 rounded">mi22lulus</span></p>
-                        </div>
-                        
-                        <!-- Error Message -->
-                        <div id="errorMessage" class="hidden bg-red-50 border border-red-200 rounded-lg p-3">
-                            <p class="text-sm text-red-800">❌ Invalid username or password. Please try again.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Modal Footer -->
-                    <div class="flex space-x-3 mt-6">
-                        <button 
-                            type="button" 
-                            onclick="closeLoginModal()"
-                            class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            type="submit"
-                            class="flex-1 px-4 py-3 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition-colors duration-200 font-medium"
-                        >
-                            Login
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Upload Section -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">📤 Unggah Dokumen Baru</h2>
+        <div id="uploadSection" class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">📤 Unggah Dokumen Baru</h2>
+                <div class="flex items-center space-x-2 text-sm text-green-600">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>Local Storage Ready - 100% Free!</span>
+                </div>
+            </div>
             <div id="uploadArea" class="upload-area rounded-lg p-8 text-center cursor-pointer">
                 <div class="space-y-4">
-                    <div class="text-4xl">📁</div>
+                    <div class="text-4xl">☁️</div>
                     <div>
                         <p class="text-lg font-medium text-gray-700">Klik atau seret file ke sini</p>
-                        <p class="text-sm text-gray-500">Mendukung PDF dan Word (.pdf, .doc, .docx)</p>
+                        <p class="text-sm text-gray-500">Simpan lokal di browser • PDF dan Word (.pdf, .doc, .docx) • No credit card needed!</p>
                     </div>
                     <input type="file" id="fileInput" accept=".pdf,.doc,.docx" class="hidden">
                 </div>
+            </div>
+            <div id="uploadProgress" class="mt-4 hidden">
+                <div class="bg-gray-200 rounded-full h-2">
+                    <div id="progressBar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="uploadStatus" class="text-sm text-gray-600 mt-2">Uploading...</p>
             </div>
         </div>
 
@@ -361,67 +337,25 @@
         let unsubscribeDocuments = null;
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             updateCurrentDate();
             setupUploadArea();
+            await initializeFileStorage();
             initializeFirestore();
         });
-        // Show login modal
-        function showLoginModal() {
-            document.getElementById('loginModal').classList.remove('hidden');
-            document.getElementById('username').focus();
-            document.getElementById('errorMessage').classList.add('hidden');
-        }
 
-        // Close login modal
-        function closeLoginModal() {
-            document.getElementById('loginModal').classList.add('hidden');
-            document.getElementById('loginForm').reset();
-            document.getElementById('errorMessage').classList.add('hidden');
-        }
 
-        // Handle login form submission
-        function handleLogin(event) {
-            event.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            // Demo credentials
-            const validUsername = 'admin';
-            const validPassword = 'mi22lulus';
-            
-            if (username === validUsername && password === validPassword) {
-                // Success - redirect to dashboard
-                closeLoginModal();
-                alert('✅ Login successful! Redirecting to dashboard...');
-                // In a real application, you would redirect to the actual dashboard
-                window.location.href = '/index.html';
-            } else {
-                // Show error message
-                document.getElementById('errorMessage').classList.remove('hidden');
-                document.getElementById('password').value = '';
-                document.getElementById('password').focus();
+
+        // Initialize file storage
+        async function initializeFileStorage() {
+            try {
+                await window.fileStorage.init();
+                console.log('IndexedDB initialized successfully');
+            } catch (error) {
+                console.error('Error initializing IndexedDB:', error);
+                showNotification('⚠️ Local storage initialization failed', 'error');
             }
         }
-        // Show info function (placeholder)
-        function showInfo() {
-            alert('About Us: MI 22 Document Review System - Bismillah LULUS! 🎓');
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('loginModal').addEventListener('click', function(event) {
-            if (event.target === this) {
-                closeLoginModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeLoginModal();
-            }
-        });
 
         // Initialize Firestore listeners
         function initializeFirestore() {
@@ -493,8 +427,35 @@
                 return;
             }
 
+            // Check file size (max 50MB for local storage)
+            const maxSize = 50 * 1024 * 1024; // 50MB
+            if (file.size > maxSize) {
+                alert('File terlalu besar! Maksimal 50MB untuk local storage.');
+                return;
+            }
+
+            // Show upload progress
+            const progressContainer = document.getElementById('uploadProgress');
+            const progressBar = document.getElementById('progressBar');
+            const statusText = document.getElementById('uploadStatus');
+            
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '10%';
+            statusText.textContent = 'Preparing upload...';
+
             try {
                 const today = new Date().toISOString().split('T')[0];
+                const fileId = `${today}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                progressBar.style.width = '30%';
+                statusText.textContent = 'Saving to local storage...';
+
+                // Save file to IndexedDB
+                const savedFile = await window.fileStorage.saveFile(fileId, file);
+                
+                progressBar.style.width = '70%';
+                statusText.textContent = 'Creating document record...';
+
                 const documentData = {
                     name: file.name,
                     type: file.type,
@@ -502,7 +463,11 @@
                     uploadDate: today,
                     uploadTime: new Date().toLocaleTimeString('id-ID'),
                     timestamp: window.firestore.serverTimestamp(),
-                    commentCount: 0
+                    commentCount: 0,
+                    // Local storage specific data
+                    fileId: fileId,
+                    isLocalFile: true,
+                    previewAvailable: file.type === 'application/pdf'
                 };
 
                 // Add document to Firestore
@@ -511,24 +476,27 @@
                     documentData
                 );
 
-                // Store file locally in browser
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    localStorage.setItem(`file_${documentData.name}_${today}`, e.target.result);
-                };
-                reader.readAsDataURL(file);
+                progressBar.style.width = '100%';
+                statusText.textContent = 'Upload complete!';
 
-                // Reset file input
+                // Reset file input and hide progress
                 document.getElementById('fileInput').value = '';
+                setTimeout(() => {
+                    progressContainer.classList.add('hidden');
+                    progressBar.style.width = '0%';
+                }, 2000);
                 
                 // Show success message
-                showNotification('✅ Dokumen berhasil diunggah!', 'success');
+                showNotification('✅ Dokumen berhasil disimpan secara lokal!', 'success');
                 
             } catch (error) {
                 console.error('Error uploading document:', error);
-                showNotification('❌ Gagal mengunggah dokumen!', 'error');
+                progressContainer.classList.add('hidden');
+                showNotification('❌ Gagal menyimpan dokumen!', 'error');
             }
         }
+
+
 
         function renderDocuments() {
             const container = document.getElementById('documentsContainer');
@@ -649,63 +617,205 @@
             setupCommentsListener();
         }
 
-        function loadFilePreview(doc) {
+        async function loadFilePreview(doc) {
             const container = document.getElementById('filePreviewContainer');
-            const fileKey = `file_${doc.name}_${doc.uploadDate}`;
-            const fileData = localStorage.getItem(fileKey);
             
-            if (!fileData) {
+            // Show loading state
+            container.innerHTML = `
+                <div class="text-center text-gray-500">
+                    <div class="text-6xl mb-4">⏳</div>
+                    <p class="text-lg">Loading preview...</p>
+                    <p class="text-sm">Getting file from local storage</p>
+                </div>
+            `;
+            
+            console.log('Loading preview for doc:', doc);
+            
+            if (!doc.fileId) {
                 container.innerHTML = `
                     <div class="text-center text-gray-500">
                         <div class="text-6xl mb-4">❌</div>
-                        <p class="text-lg font-medium">File tidak ditemukan</p>
-                        <p class="text-sm">File mungkin sudah dihapus dari browser</p>
+                        <p class="text-lg font-medium">File ID tidak ditemukan</p>
+                        <p class="text-sm">Document: ${doc.name}</p>
+                        <p class="text-xs text-red-500">Debug: fileId = ${doc.fileId}</p>
                     </div>
                 `;
                 return;
             }
-            
-            if (doc.type === 'application/pdf') {
-                // PDF Preview
-                container.innerHTML = `
-                    <div class="w-full h-full">
-                        <iframe src="${fileData}" class="w-full h-full border-0 rounded-lg" type="application/pdf">
-                            <div class="text-center text-gray-500 p-8">
-                                <div class="text-6xl mb-4">📄</div>
-                                <p class="text-lg font-medium">PDF Preview</p>
-                                <p class="text-sm mb-4">Browser tidak mendukung preview PDF</p>
-                                <a href="${fileData}" download="${doc.name}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                                    📥 Download PDF
-                                </a>
-                            </div>
-                        </iframe>
-                    </div>
-                `;
-            } else if (doc.type.includes('word')) {
-                // Word Document Preview (Limited)
-                container.innerHTML = `
-                    <div class="text-center text-gray-500 p-8">
-                        <div class="text-6xl mb-4">📝</div>
-                        <p class="text-lg font-medium">${doc.name}</p>
-                        <p class="text-sm mb-6">Word document preview tidak tersedia di browser</p>
-                        <div class="space-y-3">
-                            <a href="${fileData}" download="${doc.name}" class="block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
-                                📥 Download Document
-                            </a>
-                            <p class="text-xs text-gray-400">Buka dengan Microsoft Word atau Google Docs</p>
+
+            try {
+                console.log('Getting file from IndexedDB with ID:', doc.fileId);
+                
+                // Get file from IndexedDB
+                const fileData = await window.fileStorage.getFile(doc.fileId);
+                console.log('File data retrieved:', fileData ? 'Success' : 'Not found');
+                
+                if (!fileData) {
+                    container.innerHTML = `
+                        <div class="text-center text-gray-500">
+                            <div class="text-6xl mb-4">❌</div>
+                            <p class="text-lg font-medium">File tidak ditemukan di IndexedDB</p>
+                            <p class="text-sm">File ID: ${doc.fileId}</p>
+                            <p class="text-sm">File mungkin telah dihapus dari local storage</p>
+                            <button onclick="checkIndexedDB()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg">
+                                🔍 Debug IndexedDB
+                            </button>
                         </div>
-                    </div>
-                `;
-            } else {
-                // Generic file preview
+                    `;
+                    return;
+                }
+                
+                console.log('File type:', doc.type);
+                
+                if (doc.type === 'application/pdf') {
+                    // PDF Preview using data URL with better error handling
+                    console.log('Creating PDF preview with data URL length:', fileData.data.length);
+                    
+                    container.innerHTML = `
+                        <div class="w-full h-full flex flex-col">
+                            <div class="mb-2 text-sm text-green-600 text-center bg-green-50 p-2 rounded flex items-center justify-between">
+                                <span>✅ PDF loaded from IndexedDB (${formatFileSize(fileData.size)})</span>
+                                <button onclick="testPDFPreview('${doc.fileId}')" class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">
+                                    🔧 Test Preview
+                                </button>
+                            </div>
+                            <div class="flex-1 relative">
+                                <iframe 
+                                    id="pdfPreview" 
+                                    src="${fileData.data}" 
+                                    class="w-full h-full border-2 border-gray-200 rounded-lg" 
+                                    type="application/pdf"
+                                    onload="console.log('PDF iframe loaded successfully')"
+                                    onerror="console.error('PDF iframe failed to load')"
+                                >
+                                </iframe>
+                                
+                                <!-- Fallback content if iframe doesn't work -->
+                                <div id="pdfFallback" class="absolute inset-0 bg-white rounded-lg border-2 border-gray-200 hidden">
+                                    <div class="text-center text-gray-500 p-8 h-full flex flex-col justify-center">
+                                        <div class="text-6xl mb-4">📄</div>
+                                        <p class="text-lg font-medium mb-2">PDF Preview</p>
+                                        <p class="text-sm mb-4 text-yellow-600">Browser tidak dapat menampilkan PDF inline</p>
+                                        <div class="space-y-3">
+                                            <button onclick="openPDFInNewTab('${doc.fileId}')" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                                                👁️ Buka PDF di Tab Baru
+                                            </button>
+                                            <button onclick="downloadFile('${doc.fileId}', '${doc.name}')" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors">
+                                                📥 Download PDF
+                                            </button>
+                                        </div>
+                                        <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                                            <p class="text-sm text-blue-700">
+                                                <strong>💡 Tips:</strong> Gunakan Chrome atau Firefox untuk preview yang lebih baik
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Better PDF loading detection
+                    const iframe = document.getElementById('pdfPreview');
+                    const fallback = document.getElementById('pdfFallback');
+                    
+                    let pdfLoadTimeout;
+                    let pdfLoaded = false;
+                    
+                    // Listen for successful load
+                    iframe.onload = function() {
+                        console.log('PDF iframe loaded successfully');
+                        pdfLoaded = true;
+                        clearTimeout(pdfLoadTimeout);
+                    };
+                    
+                    // Listen for error
+                    iframe.onerror = function() {
+                        console.log('PDF iframe failed to load, showing fallback');
+                        if (fallback) {
+                            iframe.style.display = 'none';
+                            fallback.classList.remove('hidden');
+                        }
+                    };
+                    
+                    // Fallback timeout - only show if PDF hasn't loaded after reasonable time
+                    pdfLoadTimeout = setTimeout(() => {
+                        if (!pdfLoaded) {
+                            console.log('PDF loading timeout, checking if content is accessible');
+                            
+                            // More sophisticated check
+                            try {
+                                // For PDF iframes, contentDocument is often null due to cross-origin restrictions
+                                // This is actually normal behavior, so we shouldn't use it as a failure indicator
+                                
+                                // Instead, check if the iframe src is valid and the element is visible
+                                if (iframe.src && iframe.offsetHeight > 0) {
+                                    console.log('PDF iframe appears to be working (has src and is visible)');
+                                    pdfLoaded = true;
+                                } else {
+                                    console.log('PDF iframe may not be working, showing fallback');
+                                    if (fallback) {
+                                        iframe.style.display = 'none';
+                                        fallback.classList.remove('hidden');
+                                    }
+                                }
+                            } catch (e) {
+                                console.log('PDF preview check completed, assuming it works');
+                                pdfLoaded = true;
+                            }
+                        }
+                    }, 5000); // Increased timeout to 5 seconds
+                } else if (doc.type.includes('word')) {
+                    // Word Document Preview (Limited)
+                    container.innerHTML = `
+                        <div class="text-center text-gray-500 p-8">
+                            <div class="text-6xl mb-4">📝</div>
+                            <p class="text-lg font-medium">${doc.name}</p>
+                            <p class="text-sm mb-2">✅ File loaded from IndexedDB (${formatFileSize(fileData.size)})</p>
+                            <p class="text-sm mb-6">Word document preview tidak tersedia di browser</p>
+                            <div class="space-y-3">
+                                <button onclick="downloadFile('${doc.fileId}', '${doc.name}')" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                                    📥 Download Document
+                                </button>
+                                <p class="text-xs text-gray-400">Buka dengan Microsoft Word atau Google Docs</p>
+                            </div>
+                            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                                <p class="text-sm text-blue-700">
+                                    <strong>💡 Tips:</strong> Upload ulang sebagai PDF untuk preview yang lebih baik
+                                </p>
+                            </div>
+                            <div class="mt-4 p-4 bg-green-50 rounded-lg">
+                                <p class="text-sm text-green-700">
+                                    <strong>✅ Local Storage:</strong> File tersimpan di browser Anda - tidak perlu internet!
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Generic file preview
+                    container.innerHTML = `
+                        <div class="text-center text-gray-500 p-8">
+                            <div class="text-6xl mb-4">📄</div>
+                            <p class="text-lg font-medium">${doc.name}</p>
+                            <p class="text-sm mb-2">✅ File loaded from IndexedDB (${formatFileSize(fileData.size)})</p>
+                            <p class="text-sm mb-6">Preview tidak tersedia untuk tipe file ini</p>
+                            <button onclick="downloadFile('${doc.fileId}', '${doc.name}')" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                                📥 Download File
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading file preview:', error);
                 container.innerHTML = `
-                    <div class="text-center text-gray-500 p-8">
-                        <div class="text-6xl mb-4">📄</div>
-                        <p class="text-lg font-medium">${doc.name}</p>
-                        <p class="text-sm mb-6">Preview tidak tersedia untuk tipe file ini</p>
-                        <a href="${fileData}" download="${doc.name}" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
-                            📥 Download File
-                        </a>
+                    <div class="text-center text-gray-500">
+                        <div class="text-6xl mb-4">❌</div>
+                        <p class="text-lg font-medium">Error loading file</p>
+                        <p class="text-sm">Terjadi kesalahan saat memuat file</p>
+                        <p class="text-xs text-red-500">Error: ${error.message}</p>
+                        <button onclick="checkIndexedDB()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg">
+                            🔍 Debug IndexedDB
+                        </button>
                     </div>
                 `;
             }
@@ -851,9 +961,40 @@
             }
         }
 
+        // Download file function
+        async function downloadFile(fileId, fileName) {
+            try {
+                const fileData = await window.fileStorage.getFile(fileId);
+                if (!fileData) {
+                    showNotification('❌ File tidak ditemukan!', 'error');
+                    return;
+                }
+
+                // Create download link
+                const link = document.createElement('a');
+                link.href = fileData.data;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showNotification('✅ File berhasil didownload!', 'success');
+            } catch (error) {
+                console.error('Error downloading file:', error);
+                showNotification('❌ Gagal mendownload file!', 'error');
+            }
+        }
+
         async function deleteDocument(docId) {
             if (confirm('Apakah Anda yakin ingin menghapus dokumen ini?')) {
                 try {
+                    const doc = documents.find(d => d.id === docId);
+                    
+                    // Delete file from IndexedDB
+                    if (doc && doc.fileId) {
+                        await window.fileStorage.deleteFile(doc.fileId);
+                    }
+
                     // Delete document from Firestore
                     await window.firestore.deleteDoc(
                         window.firestore.doc(window.db, 'documents', docId)
@@ -875,7 +1016,7 @@
                         await Promise.all(batch);
                     });
 
-                    showNotification('✅ Dokumen berhasil dihapus!', 'success');
+                    showNotification('✅ Dokumen berhasil dihapus dari local storage!', 'success');
                     
                 } catch (error) {
                     console.error('Error deleting document:', error);
@@ -976,10 +1117,142 @@
             }
         });
 
+        // Debug functions
+        async function checkIndexedDB() {
+            try {
+                console.log('=== IndexedDB Debug Info ===');
+                
+                // Check if IndexedDB is available
+                if (!window.indexedDB) {
+                    alert('❌ IndexedDB tidak tersedia di browser ini!');
+                    return;
+                }
+                
+                // Check if our database exists
+                const request = indexedDB.open('MI22DocumentStorage', 1);
+                
+                request.onsuccess = async (event) => {
+                    const db = event.target.result;
+                    console.log('Database opened successfully');
+                    
+                    // Get all files
+                    const transaction = db.transaction(['files'], 'readonly');
+                    const store = transaction.objectStore('files');
+                    const getAllRequest = store.getAll();
+                    
+                    getAllRequest.onsuccess = () => {
+                        const allFiles = getAllRequest.result;
+                        console.log('All files in IndexedDB:', allFiles);
+                        
+                        let debugInfo = `📊 IndexedDB Debug Info:\n\n`;
+                        debugInfo += `Database: MI22DocumentStorage\n`;
+                        debugInfo += `Total files: ${allFiles.length}\n\n`;
+                        
+                        if (allFiles.length > 0) {
+                            debugInfo += `Files:\n`;
+                            allFiles.forEach((file, index) => {
+                                debugInfo += `${index + 1}. ${file.name} (ID: ${file.id})\n`;
+                                debugInfo += `   Type: ${file.type}\n`;
+                                debugInfo += `   Size: ${formatFileSize(file.size)}\n\n`;
+                            });
+                        } else {
+                            debugInfo += `❌ Tidak ada file di IndexedDB\n`;
+                            debugInfo += `Coba upload file terlebih dahulu\n`;
+                        }
+                        
+                        alert(debugInfo);
+                    };
+                };
+                
+                request.onerror = () => {
+                    console.error('Error opening database:', request.error);
+                    alert('❌ Error membuka IndexedDB database!');
+                };
+                
+            } catch (error) {
+                console.error('Debug error:', error);
+                alert(`❌ Debug error: ${error.message}`);
+            }
+        }
+
+        // Test PDF preview function
+        async function testPDFPreview(fileId) {
+            try {
+                const fileData = await window.fileStorage.getFile(fileId);
+                if (!fileData) {
+                    alert('❌ File tidak ditemukan!');
+                    return;
+                }
+                
+                const iframe = document.getElementById('pdfPreview');
+                const fallback = document.getElementById('pdfFallback');
+                
+                let testInfo = `🔧 PDF Preview Test Results:\n\n`;
+                testInfo += `File ID: ${fileId}\n`;
+                testInfo += `File Name: ${fileData.name}\n`;
+                testInfo += `File Size: ${formatFileSize(fileData.size)}\n`;
+                testInfo += `Data URL Length: ${fileData.data.length}\n`;
+                testInfo += `Data URL Start: ${fileData.data.substring(0, 50)}...\n\n`;
+                
+                if (iframe) {
+                    testInfo += `Iframe Status:\n`;
+                    testInfo += `- Exists: ✅\n`;
+                    testInfo += `- Has src: ${iframe.src ? '✅' : '❌'}\n`;
+                    testInfo += `- Visible: ${iframe.offsetHeight > 0 ? '✅' : '❌'}\n`;
+                    testInfo += `- Height: ${iframe.offsetHeight}px\n`;
+                    testInfo += `- Width: ${iframe.offsetWidth}px\n\n`;
+                }
+                
+                if (fallback) {
+                    testInfo += `Fallback Status:\n`;
+                    testInfo += `- Hidden: ${fallback.classList.contains('hidden') ? '✅' : '❌'}\n`;
+                }
+                
+                testInfo += `\nBrowser Info:\n`;
+                testInfo += `- User Agent: ${navigator.userAgent.substring(0, 50)}...\n`;
+                testInfo += `- PDF Plugin: ${navigator.mimeTypes['application/pdf'] ? '✅' : '❌'}\n`;
+                
+                // Force show iframe and hide fallback for testing
+                if (iframe && fallback) {
+                    iframe.style.display = 'block';
+                    fallback.classList.add('hidden');
+                    testInfo += `\n🔧 Forced iframe to show for testing`;
+                }
+                
+                alert(testInfo);
+                
+            } catch (error) {
+                alert(`❌ Test error: ${error.message}`);
+            }
+        }
+
+        // Open PDF in new tab
+        async function openPDFInNewTab(fileId) {
+            try {
+                const fileData = await window.fileStorage.getFile(fileId);
+                if (fileData && fileData.data) {
+                    const newWindow = window.open();
+                    newWindow.document.write(`
+                        <html>
+                            <head><title>PDF Preview</title></head>
+                            <body style="margin:0;">
+                                <iframe src="${fileData.data}" style="width:100%;height:100vh;border:none;"></iframe>
+                            </body>
+                        </html>
+                    `);
+                } else {
+                    showNotification('❌ File tidak ditemukan!', 'error');
+                }
+            } catch (error) {
+                console.error('Error opening PDF:', error);
+                showNotification('❌ Gagal membuka PDF!', 'error');
+            }
+        }
+
         // Info function
         function showInfo() {
-            alert('📄 Document Review System\n\n✅ Upload dokumen PDF/Word\n✅ Komentar real-time\n✅ Kolaborasi multi-user\n✅ Filter dan pencarian\n\nDeveloped for MI 22 - Astra Tech');
+            alert('📄 Document Review System\n\n✅ Upload dokumen PDF/Word\n✅ Komentar real-time\n✅ Kolaborasi multi-user\n✅ Filter dan pencarian\n✅ Local Storage (IndexedDB)\n\nDeveloped for MI 22 - Astra Tech');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966069e722687549',t:'MTc1MzY2NDE1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'966088cea1e37549',t:'MTc1MzY2NTQyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
