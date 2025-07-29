@@ -7,7 +7,7 @@ export function middleware(req) {
   
   // Jika belum login dan mencoba akses /
   if (!token && url.pathname === '/') {
-    url.pathname = '/index';
+    url.pathname = '/review';
     return NextResponse.redirect(url);
   } 
   // Jika sudah login atau bukan halaman terproteksi
