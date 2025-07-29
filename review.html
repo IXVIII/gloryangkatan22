@@ -289,22 +289,27 @@
 
         <!-- Filter Section -->
         <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <div class="flex flex-wrap items-center gap-4">
-                <h3 class="text-lg font-semibold text-gray-800">Filter:</h3>
-                <button onclick="filterFiles('all')" class="filter-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex flex-wrap ">
-                    Semua File
-                </button>
-                <button onclick="filterFiles('commented')" class="filter-btn bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex flex-wrap ">
-                    💬 Ada Komentar
-                </button>
-                <button onclick="filterFiles('uncommented')" class="filter-btn bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors flex flex-wrap ">
-                    ⏳ Belum Ada Komentar
-                </button>
-                <select id="dateFilter" onchange="filterByDate()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="all">Semua Tanggal</option>
-                </select>
-            </div>
+          <div class="flex flex-wrap gap-4">
+            <h3 class="text-lg font-semibold text-gray-800 w-full">Filter:</h3>
+            
+            <button onclick="filterFiles('all')" class="filter-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+              Semua File
+            </button>
+        
+            <button onclick="filterFiles('commented')" class="filter-btn bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+              💬 Ada Komentar
+            </button>
+        
+            <button onclick="filterFiles('uncommented')" class="filter-btn bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
+              ⏳ Belum Ada Komentar
+            </button>
+        
+            <select id="dateFilter" onchange="filterByDate()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="all">Semua Tanggal</option>
+            </select>
+          </div>
         </div>
+
 
         <!-- Documents Section -->
         <div class="space-y-6" id="documentsContainer">
