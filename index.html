@@ -785,13 +785,23 @@
 
                 const updates = {};
                 let memberIdx = leaderIdx;
-
+                const now = new Date();
+                const bulanNama = now.toLocaleDateString('id-ID', { month: 'long' });
+                const mingguKe = Math.ceil(now.getDate() / 7);
+                
                 while (memberIdx < students.length) {
                     const student = students[memberIdx];
 
                     updates[`/${student.id}/SIDANG`] = thesisStatusValue === 'completed';
                     updates[`/${student.id}/DEMOPL`] = demoStatusValue === 'completed';
 
+                    if (thesisStatusValue === 'completed') {
+                        updates[`/${student.id}/Bulan`] = bulanNama;
+                        updates[`/${student.id}/Minggu`] = mingguKe;
+                    } else {
+                        updates[`/${student.id}/Bulan`] = "";
+                        updates[`/${student.id}/Minggu`] = "";
+                    }
                     // Stop jika next student berbeda kelompok
                     if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok !== "") {
                         break;
