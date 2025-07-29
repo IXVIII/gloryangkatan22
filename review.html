@@ -737,33 +737,34 @@
                     const fileSize = formatFileSize(doc.size);
                     
                     html += `
-                        <div class="file-card bg-white rounded-lg shadow-md p-6 ${hasComments ? 'commented' : 'uncommented'}" data-status="${hasComments ? 'commented' : 'uncommented'}">
-                            <div class="flex items-start justify-between mb-4">
-                                <div class="flex items-center space-x-3">
-                                    <div class="text-3xl">${fileIcon}</div>
-                                    <div>
-                                        <h4 class="font-medium text-gray-800 truncate" title="${doc.name}">${doc.name}</h4>
-                                        <p class="text-sm text-gray-500">${fileSize} • ${doc.uploadTime}</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    ${hasComments ? 
-                                        `<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                                            💬 ${doc.commentCount}
-                                        </span>` : 
-                                        `<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                                            ⏳ Belum ada komentar
-                                        </span>`
-                                    }
-                                </div>
+                      <div class="file-card bg-white rounded-lg shadow-md p-6 ${hasComments ? 'commented' : 'uncommented'}" data-status="${hasComments ? 'commented' : 'uncommented'}">
+                        <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+                          <div class="flex items-center space-x-3 min-w-0">
+                            <div class="text-3xl">${fileIcon}</div>
+                            <div class="min-w-0">
+                              <h4 class="font-medium text-gray-800 truncate" title="${doc.name}">${doc.name}</h4>
+                              <p class="text-sm text-gray-500">${fileSize} • ${doc.uploadTime}</p>
                             </div>
-                            
-                            <div class="flex items-center justify-between">
-                                <button onclick="openCommentModal('${doc.id}')" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm">
-                                    ${hasComments ? 'Lihat Komentar' : 'Tambah Komentar'}
-                                </button>
-                            </div>
+                          </div>
+                    
+                          <div class="shrink-0">
+                            ${hasComments ? 
+                              `<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap">
+                                💬 ${doc.commentCount}
+                              </span>` : 
+                              `<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap">
+                                ⏳ Belum ada komentar
+                              </span>`
+                            }
+                          </div>
                         </div>
+                    
+                        <div class="flex items-center justify-between">
+                          <button onclick="openCommentModal('${doc.id}')" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm">
+                            ${hasComments ? 'Lihat Komentar' : 'Tambah Komentar'}
+                          </button>
+                        </div>
+                      </div>
                     `;
                 });
                 
