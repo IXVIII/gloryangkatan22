@@ -14,7 +14,7 @@ export function middleware(req) {
     return NextResponse.redirect(url);
   } 
   alert(url.pathname);
-  alert(isLoggedIn;
+  alert(isLoggedIn);
   // Jika sudah login atau bukan halaman terproteksi
   const res = NextResponse.next();
 
