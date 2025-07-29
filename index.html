@@ -93,7 +93,10 @@
     </style>
     <script>
         const isLoggedIn = localStorage.getItem('isLoggedIn');
-    
+        if (!isLoggedIn) {
+            // Redirect ke halaman review atau login
+            window.location.href = '/review.html';
+          }
     </script>
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
