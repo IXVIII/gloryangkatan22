@@ -5,13 +5,14 @@ export function middleware(req) {
   const url = req.nextUrl.clone();
   const token = req.cookies.get('auth_token');
   const isLoggedIn = localStorage.getItem('isLoggedIn');
-  if (isLoggedIn) {
-      // Redirect ke halaman review jika belum login
-      window.location.href = '/index.html';
-  }
+  
   // Jika belum login dan mencoba akses /
   if (!token && url.pathname === '/'){
     url.pathname = '/review';
+    return NextResponse.redirect(url);
+  }
+  if (isLoggedIn) {
+    url.pathname = '/index';
     return NextResponse.redirect(url);
   }
 
