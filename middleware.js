@@ -6,11 +6,6 @@ export function middleware(req) {
   const token = req.cookies.get('auth_token');
   const isLoggedIn = localStorage.getItem('isLoggedIn');
   
-  // Jika belum login dan mencoba akses /
-  if (!token && url.pathname === '/'){
-    url.pathname = '/review';
-    return NextResponse.redirect(url);
-  }
   if (isLoggedIn) {
     url.pathname = '/index';
     return NextResponse.redirect(url);
@@ -28,8 +23,6 @@ export function middleware(req) {
     'Strict-Transport-Security',
     'max-age=31536000; includeSubDomains; preload'
   );
-  console.log(res);
-  console.log(isLoggedIn);
   return res;
 }
 
