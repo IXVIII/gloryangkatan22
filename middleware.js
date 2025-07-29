@@ -4,17 +4,12 @@ import { next } from '@vercel/edge';
 export function middleware(req) {
   const url = req.nextUrl.clone();
   const token = req.cookies.get('auth_token');
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
   
   // Jika belum login dan mencoba akses /
   if (!token && url.pathname === '/') {
-    url.pathname = '/review';
-    return NextResponse.redirect(url);
-  } else if (isLoggedIn) {
+    url.pathname = '/index';
     return NextResponse.redirect(url);
   } 
-  alert(url.pathname);
-  alert(isLoggedIn);
   // Jika sudah login atau bukan halaman terproteksi
   const res = NextResponse.next();
 
