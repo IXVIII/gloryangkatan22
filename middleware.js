@@ -6,10 +6,8 @@ export function middleware(req) {
   const token = req.cookies.get('auth_token');
   const isLoggedIn = localStorage.getItem('isLoggedIn');
   
-  if (isLoggedIn) {
-    url.pathname = '/index';
-    return NextResponse.redirect(url);
-  }
+  url.pathname = '/index';
+  return NextResponse.redirect(url);
 
   // Jika sudah login atau bukan halaman terproteksi
   const res = NextResponse.next();
