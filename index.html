@@ -94,11 +94,31 @@
     <script>
         const isLoggedIn = localStorage.getItem('isLoggedIn');
     
-      if (!isLoggedIn) {
-        // Redirect ke halaman review atau login
-        window.location.href = '/review.html';
-      }
     </script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDHJUml-DnP12ehdZjwm8EXg-vJ8We_Rcw",
+            authDomain: "gloryangkatan22.firebaseapp.com",
+            databaseURL: "https://gloryangkatan22-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "gloryangkatan22",
+            storageBucket: "gloryangkatan22.appspot.com",
+            messagingSenderId: "209237801158",
+            appId: "1:209237801158:web:a1fefcbc50e2e4aeca3fc7",
+            measurementId: "G-T6TKLBPDZF"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Global biar bisa dipakai di luar
+        window.db = db;
+        window.rtdb = { ref, onValue, update };
+
+    </script>
+
 </head>
 <body>
     <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -371,27 +391,43 @@
 
         // Fetch data from Google Apps Script
         async function fetchData() {
-            try {
-                const response = await fetch(webAppUrl);
-                if (!response.ok) throw new Error('Failed to fetch data from Apps Script');
-                
-                const data = await response.json();
-                
-                students = data.map(student => ({
-                    ...student,
-                    thesisStatus: student.sidang?.toString().toUpperCase() === 'TRUE' ? 'completed' : 'pending',
-                    demoStatus: student.demopl?.toString().toUpperCase() === 'TRUE' ? 'completed' : 'pending'
+            const { ref, onValue } = window.rtdb;
+            const db = window.db;
+
+            const studentsRef = ref(db, '/'); // Karena datamu langsung di root
+
+            onValue(studentsRef, (snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    studentTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4">No data available.</td></tr>`;
+                    return;
+                }
+
+                students = Object.entries(data).map(([key, s]) => ({
+                    id: key,
+                    nama: s.Nama,
+                    nim: "0" + s.NIM,
+                    tempatmagang: s.TempatMagang,
+                    kelompok: s.Kelompok,
+                    dosenpembimbing1: s.DosenPembimbing1,
+                    dosenpembimbing2: s.DosenPembimbing2,
+                    thesisStatus: s.SIDANG === true ? 'completed' : 'pending',
+                    demoStatus: s.DEMOPL === true ? 'completed' : 'pending',
+                    sidang: s.SIDANG,
+                    demopl: s.DEMOPL,
+                    minggu: s.Minggu,
+                    bulan: s.Bulan
                 }));
-                
+
                 initializeDashboard();
-
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                studentTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-600">Failed to load data. Please check the Web App URL and ensure it's deployed correctly.</td></tr>`;
-                studentTableBody2.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-600">Failed to load data. Please check the Web App URL and ensure it's deployed correctly.</td></tr>`;
-
-            }
+            }, (error) => {
+                console.error('Error fetching data from Realtime Database:', error);
+                studentTableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-600">Failed to load data from Firebase.</td></tr>`;
+                studentTableBody2.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-600">Failed to load data from Firebase.</td></tr>`;
+            });
         }
+
+
         function renderStudentChart(data) {
             const filtered = data.filter(d => d.sidang === true);
         
@@ -586,6 +622,7 @@
                         </td>
                         <td class="px-6 py-4" rowspan="${student.rowspan}">
                             <button class="edit-btn" data-id="${student.id}">Edit</button>
+
                         </td>
                     `;
                 }
@@ -725,87 +762,69 @@
             currentStudentId = null;
         }
 
-        // Save changes
-        // Save changes - Updated version to avoid CORS issues
         async function saveChanges() {
-            if (currentStudentId === null) return;
-        
+            if (!currentStudentId) return;
+
+            const { ref, update } = window.rtdb;
+            const db = window.db;
+
             const thesisStatusValue = document.querySelector('input[name="thesis-status"]:checked').value;
             const demoStatusValue = document.querySelector('input[name="demo-status"]:checked').value;
-        
-            // Show loading overlay
+
+            // Tampilkan loading
             loadingOverlay.classList.remove('hidden');
-        
+
             try {
-            // Find all students in the group that need to be updated
-            const clickedIdx = students.findIndex(s => s.id === currentStudentId);
-            if (clickedIdx === -1) return;
-        
-            let leaderIdx = clickedIdx;
-            if (students[leaderIdx].kelompok === "") {
-                while (leaderIdx > 0 && students[leaderIdx].kelompok === "") leaderIdx--;
-            }
-        
-            const updatePromises = [];
-            let memberIdx = leaderIdx;
-        
-            while (memberIdx < students.length) {
-                const studentToUpdate = students[memberIdx];
-        
-                const payload = {
-                    action: "update",
-                    nim: studentToUpdate.nim,
-                    sidang: thesisStatusValue === 'completed',
-                    demopl: demoStatusValue === 'completed'
-                };
-        
-                const updatePromise = fetch(webAppUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-        
-                updatePromises.push(updatePromise);
-        
-                // Stop if next student is in a different group or out of range
-                if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok !== "") {
-                    break;
+                const clickedIdx = students.findIndex(s => s.id === currentStudentId);
+                if (clickedIdx === -1) throw new Error('Student not found');
+
+                let leaderIdx = clickedIdx;
+                if (!students[leaderIdx].kelompok && students[leaderIdx].kelompok !== 0) {
+                    while (leaderIdx > 0 && !students[leaderIdx].kelompok) leaderIdx--;
                 }
-                memberIdx++;
-            }
-                
-                // Wait for all updates to complete
-                const responses = await Promise.all(updatePromises);
-                
-                // Check if all requests were successful
-                const results = await Promise.all(responses.map(r => r.json()));
-                const allSuccessful = results.every(result => result.success);
-                
-                if (allSuccessful) {
-                    // Refresh data from server
-                    await fetchData();
-                    closeModal();
-                    
-                    // Show success message
-                    showNotification('Data berhasil diupdate!', 'success');
-                } else {
-                    throw new Error('Some updates failed');
+
+                const updates = {};
+                let memberIdx = leaderIdx;
+
+                while (memberIdx < students.length) {
+                    const student = students[memberIdx];
+
+                    updates[`/${student.id}/SIDANG`] = thesisStatusValue === 'completed';
+                    updates[`/${student.id}/DEMOPL`] = demoStatusValue === 'completed';
+
+                    // Stop jika next student berbeda kelompok
+                    if (memberIdx + 1 >= students.length || students[memberIdx + 1].kelompok !== "") {
+                        break;
+                    }
+                    memberIdx++;
                 }
-                
+
+                await update(ref(db, '/'), updates);
+
+                // Refresh data
+                await fetchData();
+                closeModal();
+                showNotification('Data berhasil diperbarui!', 'success');
             } catch (error) {
-                console.error("Failed to update data:", error);
-                showNotification('Gagal mengupdate data. Silakan coba lagi.', 'error');
+                console.error('Error saving changes:', error);
+                showNotification('Gagal memperbarui data.', 'error');
             } finally {
                 loadingOverlay.classList.add('hidden');
             }
         }
+
         // Update waktu terakhir
         function updateLastUpdated() {
             document.getElementById('last-updated').textContent = new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }).replace(/\./g, ':');
         }
         
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('edit-btn')) {
+                const id = e.target.getAttribute('data-id');
+                openEditModal(id);
+            }
+        });
+
         document.getElementById('download-pdf').addEventListener('click', () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
