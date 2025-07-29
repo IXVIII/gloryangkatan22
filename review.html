@@ -491,6 +491,7 @@
                 });
 
                 if (found) {
+                    localStorage.setItem('isLoggedIn', 'true');
                     closeLoginModal();
                     showNotification('✅ Login successful! Redirecting to dashboard...', 'success');
                     window.location.href = '/index.html';
