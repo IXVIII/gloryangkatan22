@@ -92,8 +92,12 @@
         }
     </style>
     <script>
-      const isLoggedIn = document.cookie.includes("auth_token=valid");
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
     
+      if (!isLoggedIn) {
+        // Redirect ke halaman review atau login
+        window.location.href = '/review.html';
+      }
     </script>
 </head>
 <body>
