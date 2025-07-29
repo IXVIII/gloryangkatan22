@@ -28,7 +28,8 @@ export function middleware(req) {
     'Strict-Transport-Security',
     'max-age=31536000; includeSubDomains; preload'
   );
-
+  console.log(res);
+  console.log(isLoggedIn);
   return res;
 }
 
